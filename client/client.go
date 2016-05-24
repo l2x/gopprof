@@ -4,17 +4,18 @@ type Client struct {
 	server string
 	nodeID string
 
-	option *Option
+	clientOption  *ClientOption
+	profileOption *ProfileOption
 }
 
-func NewClient(server, nodeID string, option *Option) *Client {
-	if option == nil {
-		option = NewOption()
+func NewClient(server, nodeID string, clientOption *ClientOption) *Client {
+	if clientOption == nil {
+		clientOption = NewClientOption()
 	}
 	c := &Client{
-		server: server,
-		nodeID: nodeID,
-		option: option,
+		server:       server,
+		nodeID:       nodeID,
+		clientOption: clientOption,
 	}
 	return c
 }
@@ -24,4 +25,11 @@ func (c *Client) Run() {
 }
 
 func (c *Client) run() {
+	// connect to server
+
+	// run profile task
+
+	// post task file to server
+
+	// remove tmp file
 }
