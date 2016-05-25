@@ -7,9 +7,11 @@ import (
 	"runtime/pprof"
 	"runtime/trace"
 	"time"
+
+	"github.com/l2x/gopprof/common/structs"
 )
 
-var pm = map[string]func(fn *os.File, option *ProfileOption) error{
+var pm = map[string]func(fn *os.File, option *structs.ProfileOption) error{
 	"cpu":       cpuProfile,
 	"trace":     traceProfile,
 	"heap":      lookup,
@@ -27,7 +29,7 @@ func init() {
 
 // StartProfile enables profiling for the current process.
 // if success returns an profiling result file.
-func StartProfile(option *ProfileOption) (string, error) {
+func StartProfile(option *structs.ProfileOption) (string, error) {
 	f, ok := pm[option.Name]
 	if !ok {
 		return "", fmt.Errorf("Unknown profile: %s", option.Name)
@@ -39,7 +41,7 @@ func StartProfile(option *ProfileOption) (string, error) {
 		return "", fmt.Errorf("Profiling is already running: %s", option.Name)
 	}
 
-	fname := filepath.Join(option.tmp, fmt.Sprintf("%s_%v.pprof", option.Name, time.Now().Unix()))
+	fname := filepath.Join(option.Tmp, fmt.Sprintf("%s_%v.pprof", option.Name, time.Now().Unix()))
 	fn, err := os.Create(fname)
 	if err != nil {
 		return "", err
@@ -51,7 +53,7 @@ func StartProfile(option *ProfileOption) (string, error) {
 	return fname, nil
 }
 
-func cpuProfile(fn *os.File, option *ProfileOption) error {
+func cpuProfile(fn *os.File, option *structs.ProfileOption) error {
 	if err := pprof.StartCPUProfile(fn); err != nil {
 		return err
 	}
@@ -60,7 +62,7 @@ func cpuProfile(fn *os.File, option *ProfileOption) error {
 	return nil
 }
 
-func traceProfile(fn *os.File, option *ProfileOption) error {
+func traceProfile(fn *os.File, option *structs.ProfileOption) error {
 	if err := trace.Start(fn); err != nil {
 		return err
 	}
@@ -69,7 +71,7 @@ func traceProfile(fn *os.File, option *ProfileOption) error {
 	return nil
 }
 
-func lookup(fn *os.File, option *ProfileOption) error {
+func lookup(fn *os.File, option *structs.ProfileOption) error {
 	p := pprof.Lookup(option.Name)
 	if p == nil {
 		return fmt.Errorf("Unknown profile: %s", option.Name)

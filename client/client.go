@@ -1,27 +1,31 @@
 package client
 
+// Client is a gopprof client
 type Client struct {
 	server string
 	nodeID string
-
-	clientOption  *ClientOption
-	profileOption *ProfileOption
 }
 
-func NewClient(server, nodeID string, clientOption *ClientOption) *Client {
-	if clientOption == nil {
-		clientOption = NewClientOption()
-	}
+// NewClient return client
+func NewClient(server, nodeID string) *Client {
 	c := &Client{
-		server:       server,
-		nodeID:       nodeID,
-		clientOption: clientOption,
+		server: server,
+		nodeID: nodeID,
 	}
 	return c
 }
 
-func (c *Client) Run() {
+// Run an client
+func (c *Client) Run() error {
+	if err := c.register(); err != nil {
+		return err
+	}
 	go c.run()
+	return nil
+}
+
+func (c *Client) register() error {
+	return nil
 }
 
 func (c *Client) run() {

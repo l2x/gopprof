@@ -1,18 +1,16 @@
 package client
 
-import "runtime"
+import (
+	"runtime"
 
-// Stats records statistics about the memory allocator.
-type Stats struct {
-	NumGoroutine int
-	runtime.MemStats
-}
+	"github.com/l2x/gopprof/common/structs"
+)
 
 // StartStats enables stats for the current process.
-func StartStats() Stats {
+func StartStats() structs.Stats {
 	m := runtime.MemStats{}
 	runtime.ReadMemStats(&m)
-	return Stats{
+	return structs.Stats{
 		MemStats:     m,
 		NumGoroutine: runtime.NumGoroutine(),
 	}

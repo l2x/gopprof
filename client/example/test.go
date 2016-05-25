@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/l2x/gopprof/client"
+	"github.com/l2x/gopprof/common/structs"
 )
 
 func main() {
@@ -14,7 +15,7 @@ func main() {
 
 	time.Sleep(1 * time.Second)
 
-	opt := client.NewProfileOption("block")
+	opt := structs.NewProfileOption("block")
 	fname, err := client.StartProfile(opt)
 	if err != nil {
 		log.Println(err)
