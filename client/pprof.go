@@ -10,10 +10,11 @@ import (
 )
 
 var pm = map[string]func(fn *os.File, option *ProfileOption) error{
-	"cpu":   cpuProfile,
-	"trace": traceProfile,
-	"heap":  lookup,
-	"block": lookup,
+	"cpu":       cpuProfile,
+	"trace":     traceProfile,
+	"heap":      lookup,
+	"goroutine": lookup,
+	"block":     lookup,
 }
 
 var pmChan = map[string]chan struct{}{}
@@ -35,7 +36,7 @@ func StartProfile(option *ProfileOption) (string, error) {
 	case pmChan[option.Name] <- struct{}{}:
 		defer func() { <-pmChan[option.Name] }()
 	default:
-		return "", fmt.Errorf("profiling is already running: %s", option.Name)
+		return "", fmt.Errorf("Profiling is already running: %s", option.Name)
 	}
 
 	fname := filepath.Join(option.tmp, fmt.Sprintf("%s_%v.pprof", option.Name, time.Now().Unix()))
