@@ -31,7 +31,7 @@ func eventRegister(evtReq *structs.Event) (*structs.Event, error) {
 	if !ok {
 		return nil, fmt.Errorf("Event data invalid: %#v", evtReq)
 	}
-	NodesMap.Add(nodeBase)
+	NodesMap.Add(nodeBase.NodeID)
 
 	// TODO get node conf
 
@@ -53,5 +53,9 @@ func eventNone(evtReq *structs.Event) (*structs.Event, error) {
 	_ = node
 
 	time.Sleep(60 * time.Second)
+	return nil, nil
+}
+
+func eventStat(evtReq *structs.Event) (*structs.Event, error) {
 	return nil, nil
 }

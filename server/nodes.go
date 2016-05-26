@@ -25,12 +25,10 @@ func NewNodes() *Nodes {
 }
 
 // Add node
-func (n *Nodes) Add(nodeBase structs.NodeBase) *structs.Node {
-	node := &structs.Node{
-		NodeBase: nodeBase,
-	}
+func (n *Nodes) Add(nodeID string) *structs.Node {
+	node := structs.NewNode(nodeID)
 	n.mu.Lock()
-	n.nodes[nodeBase.NodeID] = node
+	n.nodes[nodeID] = node
 	n.mu.Unlock()
 	return node
 }
