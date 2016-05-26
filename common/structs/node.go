@@ -46,4 +46,13 @@ type NodeBase struct {
 
 // NodeConf storage node config
 type NodeConf struct {
+	Tags []string
+
+	EnableProfile   bool
+	LastProfile     time.Time
+	ProfileInterval int
+
+	EnableStat   bool
+	LastStat     time.Time
+	StatInterval int
 }

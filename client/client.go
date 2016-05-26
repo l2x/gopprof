@@ -45,6 +45,7 @@ func (c *Client) register() error {
 	}
 	_, err := c.sync(evtReq)
 	if err != nil {
+		log.Println("[register]", err)
 		return err
 	}
 	return nil
@@ -57,16 +58,17 @@ func (c *Client) run() {
 		case evtReq = <-c.node.Event():
 		default:
 			evtReq = structs.NewEvent()
+			evtReq.Data = c.node.NodeID
 		}
 		evtResp, err := c.sync(evtReq)
 		if err != nil {
-			log.Println(err)
+			log.Println("[sync]", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
 		evt, err := eventProxy(c, evtResp)
 		if err != nil {
-			log.Println(err)
+			log.Println("[eventProxy]", err)
 			continue
 		}
 		if evt != nil {
@@ -76,9 +78,8 @@ func (c *Client) run() {
 }
 
 func (c *Client) sync(evtReq *structs.Event) (*structs.Event, error) {
-	var evtResp *structs.Event
+	evtResp := new(structs.Event)
 	if err := c.rpc.Call("RPCServer.Sync", evtReq, evtResp); err != nil {
-		log.Println(err)
 		c.reconnect(err)
 		return nil, err
 	}

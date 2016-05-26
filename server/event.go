@@ -39,20 +39,20 @@ func eventRegister(evtReq *structs.Event) (*structs.Event, error) {
 }
 
 func eventNone(evtReq *structs.Event) (*structs.Event, error) {
-	nodeBase, ok := evtReq.Data.(structs.NodeBase)
+	nodeID, ok := evtReq.Data.(string)
 	if !ok {
 		return nil, fmt.Errorf("Event data invalid: %#v", evtReq)
 	}
-	node, ok := NodesMap.Get(nodeBase.NodeID)
+	node, ok := NodesMap.Get(nodeID)
 	if !ok {
-		log.Println("please register")
+		log.Println("[eventNode] Node not registered, ", nodeID)
 		return &structs.Event{Type: structs.EventTypeRegister}, nil
 	}
 	// TODO check task
 
 	_ = node
 
-	time.Sleep(60 * time.Second)
+	time.Sleep(10 * time.Second)
 	return nil, nil
 }
 

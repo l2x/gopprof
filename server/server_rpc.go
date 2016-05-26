@@ -33,6 +33,7 @@ func (r *RPCServer) Sync(evtReq *structs.Event, evtResp *structs.Event) error {
 
 	evt, err := eventProxy(evtReq)
 	if err != nil {
+		log.Println("[eventProxy]", err)
 		return err
 	}
 	if evt != nil {

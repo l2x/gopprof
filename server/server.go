@@ -6,3 +6,7 @@ func Main() {
 	go ListenRPC(":8081")
 	select {}
 }
+
+// Exit func
+func Exit() {
+}
