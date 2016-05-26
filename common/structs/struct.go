@@ -39,18 +39,3 @@ func NewProfileOption(name string) ProfileOption {
 		Tmp:   "/tmp",
 	}
 }
-
-// Node storage node information
-type Node struct {
-	NodeBase
-	NodeConf
-}
-
-// NodeBase storage node base information
-type NodeBase struct {
-	NodeID string
-}
-
-// NodeConf storage node config
-type NodeConf struct {
-}

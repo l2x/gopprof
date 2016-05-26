@@ -27,6 +27,6 @@ type Event struct {
 }
 
 // NewEvent return default event
-func NewEvent() Event {
-	return Event{Type: EventTypeNone}
+func NewEvent() *Event {
+	return &Event{Type: EventTypeNone}
 }

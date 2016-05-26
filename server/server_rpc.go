@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -25,11 +24,6 @@ func ListenRPC(port string) {
 	}
 }
 
-var eventFunc = map[structs.EventType]func(evtReq *structs.Event) (*structs.Event, error){
-	structs.EventTypeNone:     eventNone,
-	structs.EventTypeRegister: eventRegister,
-}
-
 // RPCServer is rpc server
 type RPCServer struct{}
 
@@ -37,31 +31,12 @@ type RPCServer struct{}
 func (r *RPCServer) Sync(evtReq *structs.Event, evtResp *structs.Event) error {
 	log.Println(evtReq)
 
-	f, ok := eventFunc[evtReq.Type]
-	if !ok {
-		return fmt.Errorf("Unknown event: %v", evtReq.Type)
-	}
-
-	evt, err := f(evtReq)
+	evt, err := eventProxy(evtReq)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	if evt != nil {
 		*evtResp = *evt
 	}
 	return nil
-}
-
-func eventRegister(evtReq *structs.Event) (*structs.Event, error) {
-	nodeBase, ok := evtReq.Data.(structs.NodeBase)
-	if !ok {
-		return nil, fmt.Errorf("Event data invalid: %#v", evtReq)
-	}
-	NodesMap.Add(nodeBase)
-	return nil, nil
-}
-
-func eventNone(evtReq *structs.Event) (*structs.Event, error) {
-	return nil, nil
 }

@@ -1,22 +1,36 @@
 package client
 
+import (
+	"io"
+	"log"
+	"net/rpc"
+	"time"
+
+	"github.com/l2x/gopprof/common/structs"
+)
+
 // Client is a gopprof client
 type Client struct {
+	rpc    *rpc.Client
 	server string
-	nodeID string
+	node   *structs.Node
 }
 
 // NewClient return client
 func NewClient(server, nodeID string) *Client {
+	node := structs.NewNode(nodeID)
 	c := &Client{
 		server: server,
-		nodeID: nodeID,
+		node:   node,
 	}
 	return c
 }
 
 // Run an client
 func (c *Client) Run() error {
+	if err := c.connect(); err != nil {
+		return err
+	}
 	if err := c.register(); err != nil {
 		return err
 	}
@@ -25,15 +39,68 @@ func (c *Client) Run() error {
 }
 
 func (c *Client) register() error {
+	evtReq := &structs.Event{
+		Type: structs.EventTypeRegister,
+		Data: c.node.NodeBase,
+	}
+	_, err := c.sync(evtReq)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (c *Client) run() {
-	// connect to server
+	for {
+		var evtReq *structs.Event
+		select {
+		case evtReq = <-c.node.Event():
+		default:
+			evtReq = structs.NewEvent()
+		}
+		evtResp, err := c.sync(evtReq)
+		if err != nil {
+			log.Println(err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		evt, err := eventProxy(c, evtResp)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		if evt != nil {
+			c.node.AddEvent(evt)
+		}
+	}
+}
 
-	// run profile task
+func (c *Client) sync(evtReq *structs.Event) (*structs.Event, error) {
+	var evtResp *structs.Event
+	if err := c.rpc.Call("RPCServer.Sync", evtReq, evtResp); err != nil {
+		log.Println(err)
+		c.reconnect(err)
+		return nil, err
+	}
+	return evtResp, nil
+}
 
-	// post task file to server
+func (c *Client) connect() error {
+	r, err := rpc.DialHTTP("tcp", c.server)
+	if err != nil {
+		return err
+	}
+	c.rpc = r
+	return nil
+}
 
-	// remove tmp file
+func (c *Client) reconnect(e error) {
+	if e != io.EOF && e != io.ErrUnexpectedEOF && e != rpc.ErrShutdown {
+		return
+	}
+	cl, err := rpc.DialHTTP("tcp", c.server)
+	if err != nil {
+		return
+	}
+	*c.rpc = *cl
 }
