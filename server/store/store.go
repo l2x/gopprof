@@ -6,4 +6,5 @@ import "github.com/l2x/gopprof/common/structs"
 type Store interface {
 	GetNode(nodeID string) (structs.NodeConf, error)
 	GetNodeByTag(tag string) (structs.NodeConf, error)
+	SetTags(nodeID string, tags []string) error
 }
