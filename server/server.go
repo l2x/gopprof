@@ -10,3 +10,21 @@ func Main() {
 // Exit func
 func Exit() {
 }
+
+// Init at first
+func Init(cfg string) error {
+	if err := initConfig(cfg); err != nil {
+		return err
+	}
+	if err := initStoreSaver(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Close at last
+func Close() {
+	if storeSaver != nil {
+		storeSaver.Close()
+	}
+}

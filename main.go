@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,6 +16,11 @@ func main() {
 		<-signalChan
 		server.Exit()
 	}()
+
+	if err := server.Init(); err != nil {
+		log.Fatal(err)
+	}
+	defer server.Close()
 
 	server.Main()
 }
