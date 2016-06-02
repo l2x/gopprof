@@ -6,6 +6,10 @@ import (
 	"github.com/l2x/gopprof/common/structs"
 )
 
+var (
+	drivers = map[string]func() Store{}
+)
+
 // Store is the interface that storage information
 type Store interface {
 	Open(souce string) error
@@ -16,10 +20,6 @@ type Store interface {
 	SetTags(nodeID string, tags []string) error
 	GetDefault() (*structs.NodeConf, error)
 }
-
-var (
-	drivers = map[string]func() Store{}
-)
 
 // Register makes a database driver available by the provided name.
 func Register(driver string, f func() Store) {

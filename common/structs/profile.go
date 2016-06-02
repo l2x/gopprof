@@ -21,6 +21,7 @@ func NewProfileOption(name string) ProfileOption {
 
 // ProfileData is data of profiling
 type ProfileData struct {
+	NodeID  string
 	Type    string
 	Files   map[string]string
 	Created int64

@@ -43,5 +43,7 @@ func eventProfile(client *Client, evtReq *structs.Event) (*structs.Event, error)
 }
 
 func eventStat(client *Client, evtReq *structs.Event) (*structs.Event, error) {
-	return nil, nil
+	data := StartStats()
+	data.NodeID = client.node.NodeID
+	return &structs.Event{Type: structs.EventTypeStat, Data: data}, nil
 }

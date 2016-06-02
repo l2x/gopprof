@@ -88,6 +88,14 @@ func eventNone(evtReq *structs.Event) (*structs.Event, error) {
 }
 
 func eventStat(evtReq *structs.Event) (*structs.Event, error) {
+	data, ok := evtReq.Data.(structs.StatsData)
+	if !ok {
+		return nil, fmt.Errorf("Event data invalid: %#v", evtReq)
+	}
+	err := statsSaver.Save(&data)
+	if err != nil {
+		return nil, err
+	}
 	return nil, nil
 }
 

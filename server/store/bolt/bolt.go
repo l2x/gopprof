@@ -32,6 +32,7 @@ func (b *Boltstore) Open(source string) error {
 
 // Close closes boltdb
 func (b *Boltstore) Close() error {
+	b.db.Close()
 	return nil
 }
 

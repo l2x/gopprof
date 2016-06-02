@@ -17,6 +17,7 @@ func init() {
 
 // StatsData records statistics about the memory allocator.
 type StatsData struct {
+	NodeID       string
 	Created      int64
 	NumGoroutine int
 	runtime.MemStats
