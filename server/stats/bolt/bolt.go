@@ -1,6 +1,9 @@
 package boltstats
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -21,6 +24,10 @@ type Boltstats struct {
 // NewBoltstats return Boltstore
 func NewBoltstats() stats.Stats {
 	return &Boltstats{}
+}
+
+func (b *Boltstats) tableStats(nodeID string) []byte {
+	return []byte("stats_" + nodeID)
 }
 
 // Open opens boltdb
@@ -44,15 +51,64 @@ func (b *Boltstats) Close() error {
 
 // Save data
 func (b *Boltstats) Save(data *structs.StatsData) error {
-	return nil
+	return b.db.Update(func(tx *bolt.Tx) error {
+		buc, err := tx.CreateBucketIfNotExists(b.tableStats(data.NodeID))
+		if err != nil {
+			return err
+		}
+		k := fmt.Sprintf("%s_%d", data.NodeID, data.Created)
+		v, err := json.Marshal(data)
+		if err != nil {
+			return err
+		}
+		return buc.Put([]byte(k), v)
+	})
 }
 
 // GetTimeRange get data by time
 func (b *Boltstats) GetTimeRange(nodeID string, timeStart, timeEnd int64) ([]*structs.StatsData, error) {
-	return nil, nil
+	data := []*structs.StatsData{}
+	err := b.db.View(func(tx *bolt.Tx) error {
+		buc := tx.Bucket(b.tableStats(nodeID))
+		if buc == nil {
+			return nil
+		}
+		c := buc.Cursor()
+		min := []byte(fmt.Sprintf("%s_%d", nodeID, timeStart))
+		max := []byte(fmt.Sprintf("%s_%d", nodeID, timeEnd))
+
+		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
+			var d *structs.StatsData
+			if err := json.Unmarshal(v, &d); err != nil {
+				return err
+			}
+			data = append(data, d)
+		}
+		return nil
+	})
+	return data, err
 }
 
 // GetLatest return latest rows
 func (b *Boltstats) GetLatest(nodeID string, num int) ([]*structs.StatsData, error) {
-	return nil, nil
+	data := []*structs.StatsData{}
+	err := b.db.View(func(tx *bolt.Tx) error {
+		buc := tx.Bucket(b.tableStats(nodeID))
+		if buc == nil {
+			return nil
+		}
+		c := buc.Cursor()
+		for k, v := c.Last(); k != nil; k, v = c.Prev() {
+			if len(data) == num {
+				return nil
+			}
+			var d *structs.StatsData
+			if err := json.Unmarshal(v, &d); err != nil {
+				return err
+			}
+			data = append(data, d)
+		}
+		return nil
+	})
+	return data, err
 }

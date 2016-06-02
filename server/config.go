@@ -63,10 +63,10 @@ func initConfig(args []string) error {
 	}
 
 	conf = &Config{}
-	conf.HTTPListen = ":" + strings.TrimLeft(cnf.DefaultString("http_listen", ":8670"), ":")
-	conf.RPCListen = ":" + strings.TrimLeft(cnf.DefaultString("rpc_listen", ":8671"), ":")
+	conf.HTTPListen = ":" + strings.TrimLeft(cnf.DefaultString("http_listen", ":8980"), ":")
+	conf.RPCListen = ":" + strings.TrimLeft(cnf.DefaultString("rpc_listen", ":8981"), ":")
 	conf.LogPath = cnf.DefaultString("log_path", "./log")
-	conf.EventInterval = time.Duration(cnf.DefaultInt("event_interval", 60)) * time.Second
+	conf.EventInterval = time.Duration(cnf.DefaultInt("event_interval", 5)) * time.Second
 	conf.StoreDriver = cnf.DefaultString("store_driver", "bolt")
 	conf.StoreSource = cnf.DefaultString("store_driver", "./database/bolt_store.db")
 	conf.StatsDriver = cnf.DefaultString("stats_driver", "bolt")

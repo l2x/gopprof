@@ -62,6 +62,8 @@ func (c *Client) run() {
 				evtReq.Data = c.node.NodeID
 			}
 		}
+
+		log.Println("[evtReq]", evtReq)
 		evtResp, err := c.sync(evtReq)
 		evtReq = nil
 		if err != nil {
@@ -69,6 +71,8 @@ func (c *Client) run() {
 			time.Sleep(5 * time.Second)
 			continue
 		}
+		log.Println("[evtResp]", evtResp)
+
 		evtReq, err = eventProxy(c, evtResp)
 		if err != nil {
 			time.Sleep(5 * time.Second)

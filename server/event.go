@@ -12,6 +12,7 @@ import (
 var eventFunc = map[structs.EventType]func(evtReq *structs.Event) (*structs.Event, error){
 	structs.EventTypeNone:     eventNone,
 	structs.EventTypeRegister: eventRegister,
+	structs.EventTypeStat:     eventStat,
 }
 
 func eventProxy(evtReq *structs.Event) (*structs.Event, error) {
@@ -32,7 +33,6 @@ func eventRegister(evtReq *structs.Event) (*structs.Event, error) {
 	if !ok {
 		return nil, fmt.Errorf("Event data invalid: %#v", evtReq)
 	}
-
 	nodeConf, err := storeSaver.GetNode(nodeBase.NodeID)
 	if err == sql.ErrNoRows {
 		nodeConf, err = storeSaver.GetDefault()
@@ -41,10 +41,8 @@ func eventRegister(evtReq *structs.Event) (*structs.Event, error) {
 		log.Println(err)
 		return nil, err
 	}
-
 	node := nodesMap.Add(nodeBase.NodeID)
 	node.NodeConf = *nodeConf
-
 	return nil, nil
 }
 
