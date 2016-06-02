@@ -7,8 +7,7 @@ import (
 )
 
 var (
-	// NodesMap storage all node information
-	NodesMap = NewNodes()
+	nodesMap = NewNodes()
 )
 
 // Nodes is node map

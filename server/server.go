@@ -1,14 +1,23 @@
 package server
 
+import (
+	"log"
+	"os"
+	"time"
+)
+
 // Main func
 func Main() {
-	go ListenHTTP(":8080")
-	go ListenRPC(":8081")
+	go ListenHTTP(conf.HTTPListen)
+	go ListenRPC(conf.RPCListen)
 	select {}
 }
 
 // Exit func
 func Exit() {
+	log.Println("exit")
+	time.Sleep(1 * time.Second)
+	os.Exit(1)
 }
 
 // Init at first
@@ -16,7 +25,10 @@ func Init(cfg string) error {
 	if err := initConfig(cfg); err != nil {
 		return err
 	}
-	if err := initStoreSaver(); err != nil {
+	if err := initLogger(conf.LogPath); err != nil {
+		return err
+	}
+	if err := initStoreSaver(conf.StoreDriver, conf.StoreSource); err != nil {
 		return err
 	}
 	return nil

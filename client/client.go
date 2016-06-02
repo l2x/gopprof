@@ -52,27 +52,28 @@ func (c *Client) register() error {
 }
 
 func (c *Client) run() {
+	var evtReq *structs.Event
 	for {
-		var evtReq *structs.Event
-		select {
-		case evtReq = <-c.node.Event():
-		default:
-			evtReq = structs.NewEvent()
-			evtReq.Data = c.node.NodeID
+		if evtReq == nil {
+			select {
+			case evtReq = <-c.node.Event():
+			default:
+				evtReq = structs.NewEvent()
+				evtReq.Data = c.node.NodeID
+			}
 		}
 		evtResp, err := c.sync(evtReq)
+		evtReq = nil
 		if err != nil {
 			log.Println("[sync]", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		evt, err := eventProxy(c, evtResp)
+		evtReq, err = eventProxy(c, evtResp)
 		if err != nil {
+			time.Sleep(5 * time.Second)
 			log.Println("[eventProxy]", err)
 			continue
-		}
-		if evt != nil {
-			c.node.AddEvent(evt)
 		}
 	}
 }

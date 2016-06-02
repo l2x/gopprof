@@ -1,6 +1,7 @@
 package server
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"time"
@@ -31,9 +32,18 @@ func eventRegister(evtReq *structs.Event) (*structs.Event, error) {
 	if !ok {
 		return nil, fmt.Errorf("Event data invalid: %#v", evtReq)
 	}
-	NodesMap.Add(nodeBase.NodeID)
 
-	// TODO get node conf
+	nodeConf, err := storeSaver.GetNode(nodeBase.NodeID)
+	if err == sql.ErrNoRows {
+		nodeConf, err = storeSaver.GetDefault()
+	}
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	node := nodesMap.Add(nodeBase.NodeID)
+	node.NodeConf = *nodeConf
 
 	return nil, nil
 }
@@ -43,19 +53,66 @@ func eventNone(evtReq *structs.Event) (*structs.Event, error) {
 	if !ok {
 		return nil, fmt.Errorf("Event data invalid: %#v", evtReq)
 	}
-	node, ok := NodesMap.Get(nodeID)
+	node, ok := nodesMap.Get(nodeID)
 	if !ok {
 		log.Println("[eventNode] Node not registered, ", nodeID)
 		return &structs.Event{Type: structs.EventTypeRegister}, nil
 	}
-	// TODO check task
 
-	_ = node
+	select {
+	case evt := <-node.Event():
+		return evt, nil
+	default:
+	}
 
-	time.Sleep(10 * time.Second)
+	evt, err := taskStats(node)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	if evt != nil {
+		return evt, nil
+	}
+
+	evt, err = taskProfile(node)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	if evt != nil {
+		return evt, nil
+	}
+
+	time.Sleep(conf.EventInterval)
 	return nil, nil
 }
 
 func eventStat(evtReq *structs.Event) (*structs.Event, error) {
 	return nil, nil
+}
+
+func eventProfile(evtReq *structs.Event) (*structs.Event, error) {
+	return nil, nil
+}
+
+func taskProfile(node *structs.Node) (*structs.Event, error) {
+	if node.EnableProfile == false {
+		return nil, nil
+	}
+	if node.LastProfile.Add(node.ProfileInterval).After(time.Now()) {
+		return nil, nil
+	}
+	node.LastProfile = time.Now()
+	return &structs.Event{Type: structs.EventTypeProfile, Data: node.ProfileName}, nil
+}
+
+func taskStats(node *structs.Node) (*structs.Event, error) {
+	if node.EnableStat == false {
+		return nil, nil
+	}
+	if node.LastStat.Add(node.StatInterval).After(time.Now()) {
+		return nil, nil
+	}
+	node.LastStat = time.Now()
+	return &structs.Event{Type: structs.EventTypeStat}, nil
 }
