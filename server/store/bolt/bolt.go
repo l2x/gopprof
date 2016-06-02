@@ -1,6 +1,9 @@
 package boltstore
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/boltdb/bolt"
 	"github.com/l2x/gopprof/common/structs"
 	"github.com/l2x/gopprof/server/store"
@@ -22,6 +25,9 @@ func NewBoltstore() store.Store {
 
 // Open opens boltdb
 func (b *Boltstore) Open(source string) error {
+	if err := os.MkdirAll(filepath.Dir(source), 0755); err != nil {
+		return err
+	}
 	db, err := bolt.Open(source, 0600, nil)
 	if err != nil {
 		return err

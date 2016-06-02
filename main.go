@@ -1,7 +1,7 @@
 package main
 
 import (
-	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -10,15 +10,8 @@ import (
 	"github.com/l2x/gopprof/server"
 )
 
-var (
-	cfg string
-)
-
 func main() {
-	flag.StringVar(&cfg, "f", "gopprof.conf", "config file")
-	flag.Parse()
-
-	if err := server.Init(cfg); err != nil {
+	if err := server.Init(args()); err != nil {
 		log.Fatal(err)
 	}
 	defer server.Close()
@@ -31,4 +24,17 @@ func main() {
 	}()
 
 	server.Main()
+}
+
+func args() []string {
+	args := os.Args[1:]
+	if len(args) == 1 && (args[0] == "-v" || args[0] == "--version") {
+		fmt.Println(version)
+		os.Exit(0)
+	}
+	if len(args) == 1 && (args[0] == "-h" || args[0] == "-help") {
+		fmt.Println("help")
+		os.Exit(0)
+	}
+	return args
 }

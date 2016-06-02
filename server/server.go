@@ -21,8 +21,8 @@ func Exit() {
 }
 
 // Init at first
-func Init(cfg string) error {
-	if err := initConfig(cfg); err != nil {
+func Init(args []string) error {
+	if err := initConfig(args); err != nil {
 		return err
 	}
 	if err := initLogger(conf.LogPath); err != nil {
@@ -38,5 +38,8 @@ func Init(cfg string) error {
 func Close() {
 	if storeSaver != nil {
 		storeSaver.Close()
+	}
+	if statsSaver != nil {
+		statsSaver.Close()
 	}
 }
