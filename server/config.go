@@ -19,10 +19,12 @@ type Config struct {
 	RPCListen     string
 	LogPath       string
 	EventInterval time.Duration
-	StoreDriver   string
-	StoreSource   string
-	StatsDriver   string
-	StatsSource   string
+
+	StoreDriver string
+	StoreSource string
+
+	FilesDriver string
+	FilesSource string
 }
 
 func initConfig(args []string) error {
@@ -68,9 +70,7 @@ func initConfig(args []string) error {
 	conf.LogPath = cnf.DefaultString("log_path", "./log")
 	conf.EventInterval = time.Duration(cnf.DefaultInt("event_interval", 5)) * time.Second
 	conf.StoreDriver = cnf.DefaultString("store_driver", "bolt")
-	conf.StoreSource = cnf.DefaultString("store_driver", "./database/bolt_store.db")
-	conf.StatsDriver = cnf.DefaultString("stats_driver", "bolt")
-	conf.StatsSource = cnf.DefaultString("stats_driver", "./database/bolt_stats.db")
+	conf.StoreSource = cnf.DefaultString("store_driver", "./database/bolt.db")
 
 	fmt.Printf("%#v \n", conf)
 

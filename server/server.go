@@ -31,7 +31,7 @@ func Init(args []string) error {
 	if err := initStoreSaver(conf.StoreDriver, conf.StoreSource); err != nil {
 		return err
 	}
-	if err := initStatsSaver(conf.StatsDriver, conf.StatsSource); err != nil {
+	if err := initStatsSaver(conf.StoreDriver, conf.StoreSource); err != nil {
 		return err
 	}
 	return nil

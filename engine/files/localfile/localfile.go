@@ -1,6 +1,10 @@
 package localfile
 
-import "github.com/l2x/gopprof/engine/files"
+import (
+	"os"
+
+	"github.com/l2x/gopprof/engine/files"
+)
 
 func init() {
 	files.Register("localfile", NewLocalfile)
@@ -8,6 +12,7 @@ func init() {
 
 // Localfile store file in local file system
 type Localfile struct {
+	base string
 }
 
 // NewLocalfile return localfile storage
@@ -17,7 +22,8 @@ func NewLocalfile() files.Files {
 
 // Open init file storage
 func (f *Localfile) Open(souce string) error {
-	return nil
+	f.base = souce
+	return os.MkdirAll(f.base, 0755)
 }
 
 // Close file
