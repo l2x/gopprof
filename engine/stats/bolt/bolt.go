@@ -9,7 +9,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/l2x/gopprof/common/structs"
-	"github.com/l2x/gopprof/server/stats"
+	"github.com/l2x/gopprof/engine/stats"
 )
 
 func init() {

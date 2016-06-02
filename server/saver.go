@@ -1,10 +1,10 @@
 package server
 
 import (
-	"github.com/l2x/gopprof/server/stats"
-	_ "github.com/l2x/gopprof/server/stats/bolt"
-	"github.com/l2x/gopprof/server/store"
-	_ "github.com/l2x/gopprof/server/store/bolt"
+	"github.com/l2x/gopprof/engine/stats"
+	_ "github.com/l2x/gopprof/engine/stats/bolt"
+	"github.com/l2x/gopprof/engine/store"
+	_ "github.com/l2x/gopprof/engine/store/bolt"
 	"github.com/l2x/profile"
 )
 

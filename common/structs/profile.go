@@ -23,6 +23,6 @@ func NewProfileOption(name string) ProfileOption {
 type ProfileData struct {
 	NodeID  string
 	Type    string
-	Files   map[string]string
 	Created int64
+	File    string
 }
