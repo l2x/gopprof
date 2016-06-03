@@ -14,12 +14,15 @@ func init() {
 
 // Boltstore use boltdb
 type Boltstore struct {
-	db *bolt.DB
+	db             *bolt.DB
+	defaultConfKey []byte
 }
 
 // NewBoltstore return Store
 func NewBoltstore() store.Store {
-	return &Boltstore{}
+	return &Boltstore{
+		defaultConfKey: []byte("default_conf"),
+	}
 }
 
 // Open opens boltdb
@@ -38,6 +41,9 @@ func (b *Boltstore) Open(source string) error {
 func (b *Boltstore) init() error {
 	err := b.db.Update(func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists([]byte(b.TableConfName())); err != nil {
+			return err
+		}
+		if _, err := tx.CreateBucketIfNotExists([]byte(b.TableTagName())); err != nil {
 			return err
 		}
 		return nil

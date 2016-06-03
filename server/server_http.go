@@ -40,7 +40,7 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := map[string][]*structs.StatsData{}
 	for _, node := range strings.Split(nodes, ",") {
-		data, err := statsSaver.GetTimeRange(node, startTime, endTime)
+		data, err := storeSaver.GetStatsByTime(node, startTime, endTime)
 		if err != nil {
 			log.Println(err)
 			continue

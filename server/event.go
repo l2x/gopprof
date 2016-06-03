@@ -33,9 +33,9 @@ func eventRegister(evtReq *structs.Event) (*structs.Event, error) {
 	if !ok {
 		return nil, fmt.Errorf("Event data invalid: %#v", evtReq)
 	}
-	nodeConf, err := storeSaver.GetNode(nodeBase.NodeID)
+	nodeConf, err := storeSaver.GetConf(nodeBase.NodeID)
 	if err == sql.ErrNoRows {
-		nodeConf, err = storeSaver.GetDefault()
+		nodeConf, err = storeSaver.GetDefaultConf()
 	}
 	if err != nil {
 		log.Println(err)
@@ -90,8 +90,7 @@ func eventStat(evtReq *structs.Event) (*structs.Event, error) {
 	if !ok {
 		return nil, fmt.Errorf("Event data invalid: %#v", evtReq)
 	}
-	err := statsSaver.Save(&data)
-	if err != nil {
+	if err := storeSaver.SaveStat(&data); err != nil {
 		return nil, err
 	}
 	return nil, nil

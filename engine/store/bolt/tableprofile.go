@@ -4,7 +4,7 @@ import "github.com/l2x/gopprof/common/structs"
 
 // TableProfileName return table name
 func (b *Boltstore) TableProfileName(nodeID string) string {
-	return "profile"
+	return "profile_" + nodeID
 }
 
 // SaveProfile save profile data
