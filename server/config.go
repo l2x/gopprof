@@ -71,6 +71,8 @@ func initConfig(args []string) error {
 	conf.EventInterval = time.Duration(cnf.DefaultInt("event_interval", 5)) * time.Second
 	conf.StoreDriver = cnf.DefaultString("store_driver", "bolt")
 	conf.StoreSource = cnf.DefaultString("store_driver", "./database/bolt.db")
+	conf.FilesDriver = cnf.DefaultString("files_driver", "localfile")
+	conf.FilesSource = cnf.DefaultString("files_source", "./files")
 
 	fmt.Printf("%#v \n", conf)
 

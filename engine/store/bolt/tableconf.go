@@ -3,6 +3,7 @@ package boltstore
 import (
 	"database/sql"
 	"encoding/json"
+	"time"
 
 	"github.com/boltdb/bolt"
 	"github.com/l2x/gopprof/common/structs"
@@ -31,6 +32,10 @@ func (b *Boltstore) GetConf(nodeID string) (*structs.NodeConf, error) {
 
 // GetDefaultConf return default conf
 func (b *Boltstore) GetDefaultConf() (*structs.NodeConf, error) {
+	return &structs.NodeConf{
+		EnableStat:   true,
+		StatInterval: 30 * time.Second,
+	}, nil
 	nodeConf := &structs.NodeConf{}
 	err := b.db.View(func(tx *bolt.Tx) error {
 		v := tx.Bucket([]byte(b.TableConfName())).Get(b.defaultConfKey)
