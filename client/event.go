@@ -50,6 +50,8 @@ func eventProfile(client *Client, evtReq *structs.Event) (*structs.Event, error)
 	for _, opt := range opts {
 		file, err := StartProfile(&opt)
 		if err != nil {
+			opt.Status = 2
+			opt.ErrMsg = err.Error()
 			return structs.NewEvent(structs.EventTypeProfile, opt), err
 		}
 		defer func() {
