@@ -46,6 +46,7 @@ type NodeBase struct {
 
 // NodeConf storage node config
 type NodeConf struct {
+	ID   int64
 	Tags []string
 
 	EnableProfile   bool

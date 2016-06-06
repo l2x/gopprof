@@ -61,22 +61,32 @@ func (b *Boltstore) GetDefaultConf() (*structs.NodeConf, error) {
 
 // SaveConf save conf
 func (b *Boltstore) SaveConf(nodeID string, nodeConf *structs.NodeConf) (int64, error) {
-	return 0, b.db.Update(func(tx *bolt.Tx) error {
+	return nodeConf.ID, b.db.Update(func(tx *bolt.Tx) error {
+		buc := tx.Bucket([]byte(b.TableConfName()))
+		if nodeConf.ID == 0 {
+			id, _ := buc.NextSequence()
+			nodeConf.ID = int64(id)
+		}
 		v, err := json.Marshal(nodeConf)
 		if err != nil {
 			return err
 		}
-		return tx.Bucket([]byte(b.TableConfName())).Put([]byte(nodeID), v)
+		return buc.Put([]byte(nodeID), v)
 	})
 }
 
 // SaveDefaultConf save default conf
 func (b *Boltstore) SaveDefaultConf(nodeConf *structs.NodeConf) (int64, error) {
-	return 0, b.db.Update(func(tx *bolt.Tx) error {
+	return nodeConf.ID, b.db.Update(func(tx *bolt.Tx) error {
+		buc := tx.Bucket([]byte(b.TableConfName()))
+		if nodeConf.ID == 0 {
+			id, _ := buc.NextSequence()
+			nodeConf.ID = int64(id)
+		}
 		v, err := json.Marshal(nodeConf)
 		if err != nil {
 			return err
 		}
-		return tx.Bucket([]byte(b.TableConfName())).Put(b.defaultConfKey, v)
+		return buc.Put(b.defaultConfKey, v)
 	})
 }
