@@ -16,6 +16,7 @@ var eventFunc = map[structs.EventType]func(client *Client, evtReq *structs.Event
 	structs.EventTypeRegister: eventRegister,
 	structs.EventTypeProfile:  eventProfile,
 	structs.EventTypeStat:     eventStat,
+	structs.EventTypeExInfo:   eventExInfo,
 }
 
 func eventProxy(client *Client, evtReq *structs.Event) (*structs.Event, error) {
@@ -35,7 +36,7 @@ func eventRegister(client *Client, evtReq *structs.Event) (*structs.Event, error
 	return structs.NewEvent(structs.EventTypeRegister, client.node.NodeBase), nil
 }
 
-func exInfo(client *Client, evtReq *structs.Event) (*structs.Event, error) {
+func eventExInfo(client *Client, evtReq *structs.Event) (*structs.Event, error) {
 	exInfo, ok := evtReq.Data.(structs.ExInfo)
 	if !ok {
 		return nil, fmt.Errorf("event data invalid: %#v", evtReq)

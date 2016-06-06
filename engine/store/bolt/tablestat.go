@@ -15,8 +15,8 @@ func (b *Boltstore) TableStatName(nodeID string) string {
 }
 
 // SaveStat save stat data
-func (b *Boltstore) SaveStat(data *structs.StatsData) error {
-	return b.db.Update(func(tx *bolt.Tx) error {
+func (b *Boltstore) SaveStat(data *structs.StatsData) (int64, error) {
+	return 0, b.db.Update(func(tx *bolt.Tx) error {
 		buc, err := tx.CreateBucketIfNotExists([]byte(b.TableStatName(data.NodeID)))
 		if err != nil {
 			return err

@@ -18,8 +18,8 @@ func (b *Boltstore) GetNodeByTag(tag string) ([]*structs.NodeConf, error) {
 }
 
 // SaveTags save tags
-func (b *Boltstore) SaveTags(nodeID string, tags []string) error {
-	return nil
+func (b *Boltstore) SaveTags(nodeID string, tags []string) (int64, error) {
+	return 0, nil
 }
 
 // DelTag delete node tag

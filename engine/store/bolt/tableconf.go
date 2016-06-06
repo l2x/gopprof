@@ -60,8 +60,8 @@ func (b *Boltstore) GetDefaultConf() (*structs.NodeConf, error) {
 }
 
 // SaveConf save conf
-func (b *Boltstore) SaveConf(nodeID string, nodeConf *structs.NodeConf) error {
-	return b.db.Update(func(tx *bolt.Tx) error {
+func (b *Boltstore) SaveConf(nodeID string, nodeConf *structs.NodeConf) (int64, error) {
+	return 0, b.db.Update(func(tx *bolt.Tx) error {
 		v, err := json.Marshal(nodeConf)
 		if err != nil {
 			return err
@@ -71,8 +71,8 @@ func (b *Boltstore) SaveConf(nodeID string, nodeConf *structs.NodeConf) error {
 }
 
 // SaveDefaultConf save default conf
-func (b *Boltstore) SaveDefaultConf(nodeConf *structs.NodeConf) error {
-	return b.db.Update(func(tx *bolt.Tx) error {
+func (b *Boltstore) SaveDefaultConf(nodeConf *structs.NodeConf) (int64, error) {
+	return 0, b.db.Update(func(tx *bolt.Tx) error {
 		v, err := json.Marshal(nodeConf)
 		if err != nil {
 			return err

@@ -26,8 +26,8 @@ type TableConf interface {
 	TableConfName() string
 	GetConf(nodeID string) (*structs.NodeConf, error)
 	GetDefaultConf() (*structs.NodeConf, error)
-	SaveConf(nodeID string, nodeConf *structs.NodeConf) error
-	SaveDefaultConf(nodeConf *structs.NodeConf) error
+	SaveConf(nodeID string, nodeConf *structs.NodeConf) (int64, error)
+	SaveDefaultConf(nodeConf *structs.NodeConf) (int64, error)
 }
 
 // TableTag is the interface defined table tags
@@ -35,14 +35,14 @@ type TableTag interface {
 	TableTagName() string
 	GetTags() ([]string, error)
 	GetNodeByTag(tag string) ([]*structs.NodeConf, error)
-	SaveTags(nodeID string, tags []string) error
+	SaveTags(nodeID string, tags []string) (int64, error)
 	DelTag(nodeID, tag string) error
 }
 
 // TableProfile is the interface defined table profile
 type TableProfile interface {
 	TableProfileName(nodeID string) string
-	SaveProfile(data *structs.ProfileData) error
+	SaveProfile(data *structs.ProfileData) (int64, error)
 	GetProfilesByTime(nodeID string, timeStart, timeEnd int64) ([]*structs.ProfileData, error)
 	GetProfilesLatest(nodeID string, num int) ([]*structs.ProfileData, error)
 }
@@ -50,7 +50,7 @@ type TableProfile interface {
 // TableStat is the interface defined table stat
 type TableStat interface {
 	TableStatName(nodeID string) string
-	SaveStat(data *structs.StatsData) error
+	SaveStat(data *structs.StatsData) (int64, error)
 	GetStatsByTime(nodeID string, timeStart, timeEnd int64) ([]*structs.StatsData, error)
 	GetStatsLatest(nodeID string, num int) ([]*structs.StatsData, error)
 }

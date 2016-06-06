@@ -53,7 +53,7 @@ func (c *Client) register() error {
 	if evtResp.Type != structs.EventTypeExInfo {
 		return fmt.Errorf("incorrect response event: %d", evtResp.Type)
 	}
-	if _, err = eventProxy(c, evtResp); err != nil {
+	if _, err = eventExInfo(c, evtResp); err != nil {
 		return err
 	}
 	return nil

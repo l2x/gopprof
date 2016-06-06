@@ -95,7 +95,7 @@ func eventStat(evtReq *structs.Event) (*structs.Event, error) {
 	if !ok {
 		return nil, fmt.Errorf("Event data invalid: %#v", evtReq)
 	}
-	if err := storeSaver.SaveStat(&data); err != nil {
+	if _, err := storeSaver.SaveStat(&data); err != nil {
 		return nil, err
 	}
 	return nil, nil
