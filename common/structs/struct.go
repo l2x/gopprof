@@ -13,6 +13,7 @@ func init() {
 	gob.Register(Node{})
 	gob.Register(NodeBase{})
 	gob.Register(NodeConf{})
+	gob.Register(ExInfo{})
 }
 
 // StatsData records statistics about the memory allocator.
@@ -45,4 +46,9 @@ type ProfileData struct {
 // NewProfileData .
 func NewProfileData() *ProfileData {
 	return &ProfileData{}
+}
+
+// ExInfo .
+type ExInfo struct {
+	HTTPListen string
 }

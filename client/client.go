@@ -5,7 +5,6 @@ import (
 	"io"
 	"log"
 	"net/rpc"
-	"strings"
 	"time"
 
 	"github.com/l2x/gopprof/common/structs"
@@ -51,11 +50,12 @@ func (c *Client) register() error {
 		log.Println("[register]", err)
 		return err
 	}
-	if evtResp.Type != structs.EventTypeInfo {
+	if evtResp.Type != structs.EventTypeExInfo {
 		return fmt.Errorf("incorrect response event: %d", evtResp.Type)
 	}
-	s := strings.Split(c.rpcServer, ":")[0]
-	c.httpServer = fmt.Sprintf("http://%s:%s", s, strings.TrimLeft(evtResp.Data.(string), ":"))
+	if _, err = eventProxy(c, evtResp); err != nil {
+		return err
+	}
 	return nil
 }
 

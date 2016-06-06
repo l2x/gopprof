@@ -12,7 +12,7 @@ const (
 	EventTypeNone EventType = iota
 	EventTypeRegister
 	EventTypeCallback
-	EventTypeInfo
+	EventTypeExInfo
 )
 
 const (

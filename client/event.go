@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/l2x/gopprof/common/structs"
@@ -31,11 +32,17 @@ func eventProxy(client *Client, evtReq *structs.Event) (*structs.Event, error) {
 }
 
 func eventRegister(client *Client, evtReq *structs.Event) (*structs.Event, error) {
-	evt := &structs.Event{
-		Type: structs.EventTypeRegister,
-		Data: client.node.NodeBase,
+	return structs.NewEvent(structs.EventTypeRegister, client.node.NodeBase), nil
+}
+
+func exInfo(client *Client, evtReq *structs.Event) (*structs.Event, error) {
+	exInfo, ok := evtReq.Data.(structs.ExInfo)
+	if !ok {
+		return nil, fmt.Errorf("event data invalid: %#v", evtReq)
 	}
-	return evt, nil
+	s := strings.Split(client.rpcServer, ":")[0]
+	client.httpServer = fmt.Sprintf("http://%s:%s", s, strings.TrimLeft(exInfo.HTTPListen, ":"))
+	return nil, nil
 }
 
 func eventNone(client *Client, evtReq *structs.Event) (*structs.Event, error) {

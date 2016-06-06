@@ -44,7 +44,11 @@ func eventRegister(evtReq *structs.Event) (*structs.Event, error) {
 	}
 	node := nodesMap.Add(nodeBase.NodeID)
 	node.NodeConf = *nodeConf
-	return structs.NewEvent(structs.EventTypeInfo, conf.HTTPListen), nil
+
+	info := structs.ExInfo{
+		HTTPListen: conf.HTTPListen,
+	}
+	return structs.NewEvent(structs.EventTypeExInfo, info), nil
 }
 
 func eventNone(evtReq *structs.Event) (*structs.Event, error) {
