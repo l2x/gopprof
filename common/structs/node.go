@@ -49,7 +49,7 @@ type NodeConf struct {
 	Tags []string
 
 	EnableProfile   bool
-	ProfileName     []string
+	Profile         []ProfileData
 	LastProfile     time.Time
 	ProfileInterval time.Duration
 

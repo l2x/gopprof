@@ -38,10 +38,10 @@ func (b *Boltstore) GetStatsByTime(nodeID string, timeStart, timeEnd int64) ([]*
 		if buc == nil {
 			return nil
 		}
+
 		c := buc.Cursor()
 		min := []byte(fmt.Sprintf("%s_%d", nodeID, timeStart))
 		max := []byte(fmt.Sprintf("%s_%d", nodeID, timeEnd))
-
 		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
 			var d *structs.StatsData
 			if err := json.Unmarshal(v, &d); err != nil {

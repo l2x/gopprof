@@ -1,9 +1,11 @@
 package client
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/rpc"
+	"strings"
 	"time"
 
 	"github.com/l2x/gopprof/common/structs"
@@ -11,17 +13,18 @@ import (
 
 // Client is a gopprof client
 type Client struct {
-	rpc    *rpc.Client
-	server string
-	node   *structs.Node
+	rpc        *rpc.Client
+	rpcServer  string
+	httpServer string
+	node       *structs.Node
 }
 
 // NewClient return client
-func NewClient(server, nodeID string) *Client {
+func NewClient(rpcServer, nodeID string) *Client {
 	node := structs.NewNode(nodeID)
 	c := &Client{
-		server: server,
-		node:   node,
+		rpcServer: rpcServer,
+		node:      node,
 	}
 	return c
 }
@@ -43,11 +46,16 @@ func (c *Client) register() error {
 		Type: structs.EventTypeRegister,
 		Data: c.node.NodeBase,
 	}
-	_, err := c.sync(evtReq)
+	evtResp, err := c.sync(evtReq)
 	if err != nil {
 		log.Println("[register]", err)
 		return err
 	}
+	if evtResp.Type != structs.EventTypeInfo {
+		return fmt.Errorf("incorrect response event: %d", evtResp.Type)
+	}
+	s := strings.Split(c.rpcServer, ":")[0]
+	c.httpServer = fmt.Sprintf("http://%s:%s", s, strings.TrimLeft(evtResp.Data.(string), ":"))
 	return nil
 }
 
@@ -58,8 +66,7 @@ func (c *Client) run() {
 			select {
 			case evtReq = <-c.node.Event():
 			default:
-				evtReq = structs.NewEvent()
-				evtReq.Data = c.node.NodeID
+				evtReq = structs.NewEvent(structs.EventTypeNone, c.node.NodeID)
 			}
 		}
 
@@ -92,7 +99,7 @@ func (c *Client) sync(evtReq *structs.Event) (*structs.Event, error) {
 }
 
 func (c *Client) connect() error {
-	r, err := rpc.DialHTTP("tcp", c.server)
+	r, err := rpc.DialHTTP("tcp", c.rpcServer)
 	if err != nil {
 		return err
 	}
@@ -104,7 +111,7 @@ func (c *Client) reconnect(e error) {
 	if e != io.EOF && e != io.ErrUnexpectedEOF && e != rpc.ErrShutdown {
 		return
 	}
-	cl, err := rpc.DialHTTP("tcp", c.server)
+	cl, err := rpc.DialHTTP("tcp", c.rpcServer)
 	if err != nil {
 		return
 	}

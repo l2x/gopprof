@@ -13,6 +13,7 @@ var eventFunc = map[structs.EventType]func(evtReq *structs.Event) (*structs.Even
 	structs.EventTypeNone:     eventNone,
 	structs.EventTypeRegister: eventRegister,
 	structs.EventTypeStat:     eventStat,
+	structs.EventTypeCallback: eventCallback,
 }
 
 func eventProxy(evtReq *structs.Event) (*structs.Event, error) {
@@ -43,7 +44,7 @@ func eventRegister(evtReq *structs.Event) (*structs.Event, error) {
 	}
 	node := nodesMap.Add(nodeBase.NodeID)
 	node.NodeConf = *nodeConf
-	return nil, nil
+	return structs.NewEvent(structs.EventTypeInfo, conf.HTTPListen), nil
 }
 
 func eventNone(evtReq *structs.Event) (*structs.Event, error) {
@@ -54,7 +55,7 @@ func eventNone(evtReq *structs.Event) (*structs.Event, error) {
 	node, ok := nodesMap.Get(nodeID)
 	if !ok {
 		log.Println("[eventNode] Node not registered, ", nodeID)
-		return &structs.Event{Type: structs.EventTypeRegister}, nil
+		return structs.NewEvent(structs.EventTypeRegister, nil), nil
 	}
 
 	select {
@@ -100,6 +101,10 @@ func eventProfile(evtReq *structs.Event) (*structs.Event, error) {
 	return nil, nil
 }
 
+func eventCallback(evtReq *structs.Event) (*structs.Event, error) {
+	return nil, nil
+}
+
 func taskProfile(node *structs.Node) (*structs.Event, error) {
 	if node.EnableProfile == false {
 		return nil, nil
@@ -108,7 +113,7 @@ func taskProfile(node *structs.Node) (*structs.Event, error) {
 		return nil, nil
 	}
 	node.LastProfile = time.Now()
-	return &structs.Event{Type: structs.EventTypeProfile, Data: node.ProfileName}, nil
+	return structs.NewEvent(structs.EventTypeProfile, node.Profile), nil
 }
 
 func taskStats(node *structs.Node) (*structs.Event, error) {
@@ -119,5 +124,5 @@ func taskStats(node *structs.Node) (*structs.Event, error) {
 		return nil, nil
 	}
 	node.LastStat = time.Now()
-	return &structs.Event{Type: structs.EventTypeStat}, nil
+	return structs.NewEvent(structs.EventTypeStat, nil), nil
 }

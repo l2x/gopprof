@@ -1,7 +1,11 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
+	"os"
+	"time"
 
 	"github.com/l2x/gopprof/common/structs"
 )
@@ -39,11 +43,40 @@ func eventNone(client *Client, evtReq *structs.Event) (*structs.Event, error) {
 }
 
 func eventProfile(client *Client, evtReq *structs.Event) (*structs.Event, error) {
+	opts, ok := evtReq.Data.([]structs.ProfileData)
+	if !ok {
+		return nil, fmt.Errorf("event data invalid: %#v", evtReq)
+	}
+	for _, opt := range opts {
+		file, err := StartProfile(&opt)
+		if err != nil {
+			return structs.NewEvent(structs.EventTypeProfile, opt), err
+		}
+		defer func() {
+			os.Remove(file)
+		}()
+
+		opt.File = file
+		opt.Created = time.Now().Unix()
+		opt.Status = 1
+		data, err := json.Marshal(opt)
+		if err != nil {
+			return nil, err
+		}
+		params := map[string]string{
+			"data": string(data),
+		}
+		_, err = fileUpload(fmt.Sprintf("%s/upload", client.httpServer), file, params)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+	}
 	return nil, nil
 }
 
 func eventStat(client *Client, evtReq *structs.Event) (*structs.Event, error) {
 	data := StartStats()
 	data.NodeID = client.node.NodeID
-	return &structs.Event{Type: structs.EventTypeStat, Data: data}, nil
+	return structs.NewEvent(structs.EventTypeStat, data), nil
 }

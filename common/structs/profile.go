@@ -1,28 +1,24 @@
 package structs
 
-// ProfileOption is options for profiling.
-type ProfileOption struct {
-	Name  string
-	Sleep int
-	Debug int
-	GC    bool
-	Tmp   string
-}
-
-// NewProfileOption return ProfileOption with default value.
-func NewProfileOption(name string) ProfileOption {
-	return ProfileOption{
-		Name:  name,
-		Sleep: 30,
-		Debug: 1,
-		Tmp:   "/tmp",
-	}
-}
-
 // ProfileData is data of profiling
 type ProfileData struct {
+	ID      int64
 	NodeID  string
 	Type    string
 	Created int64
 	File    string
+
+	// status
+	Status int // 0 - pending, 1 - success, 2 - failed
+	ErrMsg string
+
+	// option
+	Sleep int
+	Debug int
+	GC    bool
+}
+
+// NewProfileData .
+func NewProfileData() *ProfileData {
+	return &ProfileData{}
 }

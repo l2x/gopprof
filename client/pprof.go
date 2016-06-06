@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"runtime/pprof"
 	"runtime/trace"
 	"time"
@@ -11,7 +10,7 @@ import (
 	"github.com/l2x/gopprof/common/structs"
 )
 
-var pm = map[string]func(fn *os.File, option *structs.ProfileOption) error{
+var pm = map[string]func(fn *os.File, option *structs.ProfileData) error{
 	"cpu":       cpuProfile,
 	"trace":     traceProfile,
 	"heap":      lookup,
@@ -29,19 +28,19 @@ func init() {
 
 // StartProfile enables profiling for the current process.
 // if success returns an profiling result file.
-func StartProfile(option *structs.ProfileOption) (string, error) {
-	f, ok := pm[option.Name]
+func StartProfile(option *structs.ProfileData) (string, error) {
+	f, ok := pm[option.Type]
 	if !ok {
-		return "", fmt.Errorf("Unknown profile: %s", option.Name)
+		return "", fmt.Errorf("Unknown profile: %s", option.Type)
 	}
 	select {
-	case pmChan[option.Name] <- struct{}{}:
-		defer func() { <-pmChan[option.Name] }()
+	case pmChan[option.Type] <- struct{}{}:
+		defer func() { <-pmChan[option.Type] }()
 	default:
-		return "", fmt.Errorf("Profiling is already running: %s", option.Name)
+		return "", fmt.Errorf("Profiling is already running: %s", option.Type)
 	}
 
-	fname := filepath.Join(option.Tmp, fmt.Sprintf("%s_%v.pprof", option.Name, time.Now().Unix()))
+	fname := fmt.Sprintf("/tmp/%s_%v.pprof", option.Type, time.Now().UnixNano())
 	fn, err := os.Create(fname)
 	if err != nil {
 		return "", err
@@ -53,7 +52,7 @@ func StartProfile(option *structs.ProfileOption) (string, error) {
 	return fname, nil
 }
 
-func cpuProfile(fn *os.File, option *structs.ProfileOption) error {
+func cpuProfile(fn *os.File, option *structs.ProfileData) error {
 	if err := pprof.StartCPUProfile(fn); err != nil {
 		return err
 	}
@@ -62,7 +61,7 @@ func cpuProfile(fn *os.File, option *structs.ProfileOption) error {
 	return nil
 }
 
-func traceProfile(fn *os.File, option *structs.ProfileOption) error {
+func traceProfile(fn *os.File, option *structs.ProfileData) error {
 	if err := trace.Start(fn); err != nil {
 		return err
 	}
@@ -71,10 +70,10 @@ func traceProfile(fn *os.File, option *structs.ProfileOption) error {
 	return nil
 }
 
-func lookup(fn *os.File, option *structs.ProfileOption) error {
-	p := pprof.Lookup(option.Name)
+func lookup(fn *os.File, option *structs.ProfileData) error {
+	p := pprof.Lookup(option.Type)
 	if p == nil {
-		return fmt.Errorf("Unknown profile: %s", option.Name)
+		return fmt.Errorf("Unknown profile: %s", option.Type)
 	}
 	if err := p.WriteTo(fn, option.Debug); err != nil {
 		return err

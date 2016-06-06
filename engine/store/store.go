@@ -27,6 +27,7 @@ type TableConf interface {
 	GetConf(nodeID string) (*structs.NodeConf, error)
 	GetDefaultConf() (*structs.NodeConf, error)
 	SaveConf(nodeID string, nodeConf *structs.NodeConf) error
+	SaveDefaultConf(nodeConf *structs.NodeConf) error
 }
 
 // TableTag is the interface defined table tags
@@ -35,6 +36,7 @@ type TableTag interface {
 	GetTags() ([]string, error)
 	GetNodeByTag(tag string) ([]*structs.NodeConf, error)
 	SaveTags(nodeID string, tags []string) error
+	DelTag(nodeID, tag string) error
 }
 
 // TableProfile is the interface defined table profile

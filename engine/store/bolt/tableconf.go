@@ -33,8 +33,17 @@ func (b *Boltstore) GetConf(nodeID string) (*structs.NodeConf, error) {
 // GetDefaultConf return default conf
 func (b *Boltstore) GetDefaultConf() (*structs.NodeConf, error) {
 	return &structs.NodeConf{
-		EnableStat:   true,
-		StatInterval: 30 * time.Second,
+		//EnableStat:   true,
+		//StatInterval: 30 * time.Second,
+		EnableProfile: true,
+		Profile: []structs.ProfileData{
+			structs.ProfileData{
+				Type:  "heap",
+				Sleep: 10,
+				Debug: 1,
+			},
+		},
+		ProfileInterval: 60 * time.Second,
 	}, nil
 	nodeConf := &structs.NodeConf{}
 	err := b.db.View(func(tx *bolt.Tx) error {
@@ -52,5 +61,22 @@ func (b *Boltstore) GetDefaultConf() (*structs.NodeConf, error) {
 
 // SaveConf save conf
 func (b *Boltstore) SaveConf(nodeID string, nodeConf *structs.NodeConf) error {
-	return nil
+	return b.db.Update(func(tx *bolt.Tx) error {
+		v, err := json.Marshal(nodeConf)
+		if err != nil {
+			return err
+		}
+		return tx.Bucket([]byte(b.TableConfName())).Put([]byte(nodeID), v)
+	})
+}
+
+// SaveDefaultConf save default conf
+func (b *Boltstore) SaveDefaultConf(nodeConf *structs.NodeConf) error {
+	return b.db.Update(func(tx *bolt.Tx) error {
+		v, err := json.Marshal(nodeConf)
+		if err != nil {
+			return err
+		}
+		return tx.Bucket([]byte(b.TableConfName())).Put(b.defaultConfKey, v)
+	})
 }
