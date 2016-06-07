@@ -30,6 +30,9 @@ func Init(args []string) error {
 	if err := initStoreSaver(conf.StoreDriver, conf.StoreSource); err != nil {
 		return err
 	}
+	if err := initFilesSaver(conf.FilesDriver, conf.FilesSource); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -37,6 +40,9 @@ func Init(args []string) error {
 func Close() {
 	if storeSaver != nil {
 		storeSaver.Close()
+	}
+	if filesSaver != nil {
+		filesSaver.Close()
 	}
 	if logger != nil {
 		logger.Flush()

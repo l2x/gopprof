@@ -66,11 +66,12 @@ func eventProfile(client *Client, evtReq *structs.Event) (*structs.Event, error)
 			os.Remove(file)
 		}()
 
-		opt.File = file
 		opt.Created = time.Now().Unix()
 		opt.Status = 1
+		opt.NodeID = client.node.NodeID
 		data, err := json.Marshal(opt)
 		if err != nil {
+			log.Println(err)
 			return nil, err
 		}
 		params := map[string]string{

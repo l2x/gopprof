@@ -1,6 +1,9 @@
 package files
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+)
 
 var (
 	drivers = map[string]func() Files{}
@@ -11,7 +14,8 @@ type Files interface {
 	Open(souce string) error
 	Close() error
 
-	Save(nodeID, typ string, data []byte) (string, error)
+	Save(fname string, data []byte) error
+	CopyTo(dst string, src io.Reader) error
 	Get(fname string) ([]byte, error)
 }
 

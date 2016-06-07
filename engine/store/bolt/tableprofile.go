@@ -25,7 +25,6 @@ func (b *Boltstore) SaveProfile(data *structs.ProfileData) (int64, error) {
 			id, _ := buc.NextSequence()
 			data.ID = int64(id)
 		}
-
 		k := fmt.Sprintf("%s_%d", data.NodeID, data.Created)
 		v, err := json.Marshal(data)
 		if err != nil {
@@ -43,7 +42,6 @@ func (b *Boltstore) GetProfilesByTime(nodeID string, timeStart, timeEnd int64) (
 		if buc == nil {
 			return nil
 		}
-
 		c := buc.Cursor()
 		min := []byte(fmt.Sprintf("%s_%d", nodeID, timeStart))
 		max := []byte(fmt.Sprintf("%s_%d", nodeID, timeEnd))
@@ -63,7 +61,7 @@ func (b *Boltstore) GetProfilesByTime(nodeID string, timeStart, timeEnd int64) (
 func (b *Boltstore) GetProfilesLatest(nodeID string, num int) ([]*structs.ProfileData, error) {
 	data := []*structs.ProfileData{}
 	err := b.db.View(func(tx *bolt.Tx) error {
-		buc := tx.Bucket([]byte(b.TableStatName(nodeID)))
+		buc := tx.Bucket([]byte(b.TableProfileName(nodeID)))
 		if buc == nil {
 			return nil
 		}

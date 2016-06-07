@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -62,8 +63,6 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
-	logger.Debug("upload")
-
 	r.ParseMultipartForm(10 * 1024 * 1024)
 	file, handler, err := r.FormFile("file")
 	if err != nil {
@@ -73,5 +72,26 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	logger.Debug(handler.Filename)
+	var data structs.ProfileData
+	v := r.FormValue("data")
+	if err := json.Unmarshal([]byte(v), &data); err != nil {
+		logger.Error(err)
+		fmt.Fprint(w, err.Error())
+		return
+	}
+	logger.Debug(data)
+
+	fname := filepath.Join(data.NodeID, data.Type, time.Now().Format("2006/01/02"), handler.Filename)
+	if err = filesSaver.CopyTo(fname, file); err != nil {
+		logger.Error(err)
+		fmt.Fprint(w, err.Error())
+		return
+	}
+	data.File = fname
+	evtReq := structs.NewEvent(structs.EventTypeProfile, data)
+	if _, err = eventProfile(evtReq); err != nil {
+		fmt.Fprint(w, err.Error())
+		return
+	}
+	fmt.Fprint(w, "")
 }

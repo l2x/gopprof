@@ -2,6 +2,7 @@ package server
 
 import (
 	"log"
+	"path/filepath"
 	"strings"
 
 	"github.com/cihub/seelog"
@@ -14,7 +15,7 @@ var logconf = `
 			<console/>
 		</filter>
 		<filter levels="trace,debug,info,warn,error,critical">
-		    <rollingfile type="date" filename="logs/gopprof.log" datepattern="2006.01.02" maxrolls="7" />
+		    <rollingfile type="date" filename="#log_path#" datepattern="2006.01.02" maxrolls="7" />
 		</filter>
     </outputs>
     <formats>
@@ -27,7 +28,7 @@ var (
 	logger seelog.LoggerInterface
 )
 
-func initLogger(path string, debug bool) error {
+func initLogger(logPath string, debug bool) error {
 	// TODO for test
 	debug = true
 	if debug {
@@ -35,6 +36,7 @@ func initLogger(path string, debug bool) error {
 	} else {
 		logconf = strings.Replace(logconf, "#debug_output#", "off", 1)
 	}
+	logconf = strings.Replace(logconf, "#log_path#", filepath.Join(logPath, "gopprof.log"), 1)
 
 	var err error
 	logger, err = seelog.LoggerFromConfigAsString(logconf)

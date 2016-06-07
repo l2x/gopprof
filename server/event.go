@@ -22,7 +22,6 @@ func eventProxy(evtReq *structs.Event) (*structs.Event, error) {
 		logger.Error(err)
 		return nil, err
 	}
-
 	evt, err := f(evtReq)
 	if err != nil {
 		return nil, err
@@ -47,6 +46,8 @@ func eventRegister(evtReq *structs.Event) (*structs.Event, error) {
 	}
 	node := nodesMap.Add(nodeBase.NodeID)
 	node.NodeConf = *nodeConf
+	node.LastSync = time.Now()
+	node.Created = time.Now()
 
 	info := structs.ExInfo{
 		HTTPListen: conf.HTTPListen,
@@ -66,6 +67,7 @@ func eventNone(evtReq *structs.Event) (*structs.Event, error) {
 		logger.Warn("[eventNode] Node not registered, ", nodeID)
 		return structs.NewEvent(structs.EventTypeRegister, nil), nil
 	}
+	node.LastSync = time.Now()
 
 	select {
 	case evt := <-node.Event():
@@ -108,6 +110,12 @@ func eventStat(evtReq *structs.Event) (*structs.Event, error) {
 }
 
 func eventProfile(evtReq *structs.Event) (*structs.Event, error) {
+	data := evtReq.Data.(structs.ProfileData)
+	_, err := storeSaver.SaveProfile(&data)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
 	return nil, nil
 }
 
@@ -119,6 +127,9 @@ func taskProfile(node *structs.Node) (*structs.Event, error) {
 	if node.EnableProfile == false {
 		return nil, nil
 	}
+	if node.Created.Add(node.ProfileInterval).After(time.Now()) {
+		return nil, nil
+	}
 	if node.LastProfile.Add(node.ProfileInterval).After(time.Now()) {
 		return nil, nil
 	}
@@ -128,6 +139,9 @@ func taskProfile(node *structs.Node) (*structs.Event, error) {
 
 func taskStats(node *structs.Node) (*structs.Event, error) {
 	if node.EnableStat == false {
+		return nil, nil
+	}
+	if node.Created.Add(node.StatInterval).After(time.Now()) {
 		return nil, nil
 	}
 	if node.LastStat.Add(node.StatInterval).After(time.Now()) {

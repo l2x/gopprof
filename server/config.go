@@ -16,16 +16,14 @@ var (
 // Config read from config file
 type Config struct {
 	Debug         bool
+	LogPath       string
 	HTTPListen    string
 	RPCListen     string
-	LogPath       string
 	EventInterval time.Duration
-
-	StoreDriver string
-	StoreSource string
-
-	FilesDriver string
-	FilesSource string
+	StoreDriver   string
+	StoreSource   string
+	FilesDriver   string
+	FilesSource   string
 }
 
 func initConfig(args []string) error {
@@ -69,10 +67,10 @@ func initConfig(args []string) error {
 
 	conf = &Config{}
 	conf.Debug = cnf.DefaultBool("debug", false)
+	conf.LogPath = cnf.DefaultString("log_path", "./logs")
 	conf.HTTPListen = ":" + strings.TrimLeft(cnf.DefaultString("http_listen", ":8980"), ":")
 	conf.RPCListen = ":" + strings.TrimLeft(cnf.DefaultString("rpc_listen", ":8981"), ":")
-	conf.LogPath = cnf.DefaultString("log_path", "./log")
-	conf.EventInterval = time.Duration(cnf.DefaultInt("event_interval", 5)) * time.Second
+	conf.EventInterval = time.Duration(cnf.DefaultInt("event_interval", 10)) * time.Second
 	conf.StoreDriver = cnf.DefaultString("store_driver", "bolt")
 	conf.StoreSource = cnf.DefaultString("store_driver", "./database/bolt.db")
 	conf.FilesDriver = cnf.DefaultString("files_driver", "localfile")

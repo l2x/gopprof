@@ -41,6 +41,7 @@ func (n *Node) AddEvent(evt *Event) error {
 type NodeBase struct {
 	NodeID   string
 	LastSync time.Time
+	Created  time.Time
 }
 
 // NodeConf storage node config
