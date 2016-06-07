@@ -28,13 +28,15 @@ func main() {
 
 func args() []string {
 	args := os.Args[1:]
-	if len(args) == 1 && (args[0] == "-v" || args[0] == "--version") {
-		fmt.Println(version)
-		os.Exit(0)
-	}
-	if len(args) == 1 && (args[0] == "-h" || args[0] == "-help") {
-		fmt.Println("help")
-		os.Exit(0)
+	if len(args) == 1 {
+		switch args[0] {
+		case "-v", "--v", "-version", "--version":
+			fmt.Println(version)
+			os.Exit(0)
+		case "-h", "--h", "-help", "--help":
+			fmt.Println("help")
+			os.Exit(0)
+		}
 	}
 	return args
 }
