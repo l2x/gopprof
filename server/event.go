@@ -3,7 +3,6 @@ package server
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/l2x/gopprof/common/structs"
@@ -19,7 +18,9 @@ var eventFunc = map[structs.EventType]func(evtReq *structs.Event) (*structs.Even
 func eventProxy(evtReq *structs.Event) (*structs.Event, error) {
 	f, ok := eventFunc[evtReq.Type]
 	if !ok {
-		return nil, fmt.Errorf("Unknown event: %v", evtReq.Type)
+		err := fmt.Errorf("Unknown event: %v", evtReq.Type)
+		logger.Error(err)
+		return nil, err
 	}
 
 	evt, err := f(evtReq)
@@ -32,14 +33,16 @@ func eventProxy(evtReq *structs.Event) (*structs.Event, error) {
 func eventRegister(evtReq *structs.Event) (*structs.Event, error) {
 	nodeBase, ok := evtReq.Data.(structs.NodeBase)
 	if !ok {
-		return nil, fmt.Errorf("Event data invalid: %#v", evtReq)
+		err := fmt.Errorf("Event data invalid: %#v", evtReq)
+		logger.Error(err)
+		return nil, err
 	}
 	nodeConf, err := storeSaver.GetConf(nodeBase.NodeID)
 	if err == sql.ErrNoRows {
 		nodeConf, err = storeSaver.GetDefaultConf()
 	}
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		return nil, err
 	}
 	node := nodesMap.Add(nodeBase.NodeID)
@@ -54,11 +57,13 @@ func eventRegister(evtReq *structs.Event) (*structs.Event, error) {
 func eventNone(evtReq *structs.Event) (*structs.Event, error) {
 	nodeID, ok := evtReq.Data.(string)
 	if !ok {
-		return nil, fmt.Errorf("Event data invalid: %#v", evtReq)
+		err := fmt.Errorf("Event data invalid: %#v", evtReq)
+		logger.Error(err)
+		return nil, err
 	}
 	node, ok := nodesMap.Get(nodeID)
 	if !ok {
-		log.Println("[eventNode] Node not registered, ", nodeID)
+		logger.Warn("[eventNode] Node not registered, ", nodeID)
 		return structs.NewEvent(structs.EventTypeRegister, nil), nil
 	}
 
@@ -70,7 +75,6 @@ func eventNone(evtReq *structs.Event) (*structs.Event, error) {
 
 	evt, err := taskStats(node)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 	if evt != nil {
@@ -79,7 +83,6 @@ func eventNone(evtReq *structs.Event) (*structs.Event, error) {
 
 	evt, err = taskProfile(node)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 	if evt != nil {
@@ -93,9 +96,12 @@ func eventNone(evtReq *structs.Event) (*structs.Event, error) {
 func eventStat(evtReq *structs.Event) (*structs.Event, error) {
 	data, ok := evtReq.Data.(structs.StatsData)
 	if !ok {
-		return nil, fmt.Errorf("Event data invalid: %#v", evtReq)
+		err := fmt.Errorf("Event data invalid: %#v", evtReq)
+		logger.Error(err)
+		return nil, err
 	}
 	if _, err := storeSaver.SaveStat(&data); err != nil {
+		logger.Error(err)
 		return nil, err
 	}
 	return nil, nil

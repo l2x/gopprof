@@ -12,6 +12,7 @@ var (
 func initStoreSaver(driver, source string) error {
 	s, err := store.Open(driver, source)
 	if err != nil {
+		logger.Error(err)
 		return err
 	}
 	storeSaver = s

@@ -1,8 +1,8 @@
 package server
 
 import (
-	"fmt"
 	"io/ioutil"
+	"log"
 	"strings"
 	"time"
 
@@ -15,6 +15,7 @@ var (
 
 // Config read from config file
 type Config struct {
+	Debug         bool
 	HTTPListen    string
 	RPCListen     string
 	LogPath       string
@@ -39,6 +40,7 @@ func initConfig(args []string) error {
 	var err error
 	if f != "" {
 		if data, err = ioutil.ReadFile(f); err != nil {
+			log.Println(err)
 			return err
 		}
 	}
@@ -46,25 +48,27 @@ func initConfig(args []string) error {
 	// read config file
 	cnf, err := config.NewConfigData("ini", data)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	for _, arg := range args {
 		arg = strings.TrimLeft(arg, "-")
 		a := strings.SplitN(arg, "=", 2)
 		if len(a) < 2 {
-			fmt.Println("ignore:", arg)
+			log.Println("ignore:", arg)
 			continue
 		}
 		if _, err := cnf.DIY(a[0]); err == nil {
-			fmt.Println("use ", a[0], a[1])
+			log.Println("use ", a[0], a[1])
 		}
 		if err := cnf.Set(a[0], a[1]); err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			continue
 		}
 	}
 
 	conf = &Config{}
+	conf.Debug = cnf.DefaultBool("debug", false)
 	conf.HTTPListen = ":" + strings.TrimLeft(cnf.DefaultString("http_listen", ":8980"), ":")
 	conf.RPCListen = ":" + strings.TrimLeft(cnf.DefaultString("rpc_listen", ":8981"), ":")
 	conf.LogPath = cnf.DefaultString("log_path", "./log")
@@ -74,11 +78,6 @@ func initConfig(args []string) error {
 	conf.FilesDriver = cnf.DefaultString("files_driver", "localfile")
 	conf.FilesSource = cnf.DefaultString("files_source", "./files")
 
-	fmt.Printf("%#v \n", conf)
-
-	return nil
-}
-
-func initLogger(path string) error {
+	log.Printf("%#v \n", conf)
 	return nil
 }

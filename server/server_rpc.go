@@ -1,7 +1,6 @@
 package server
 
 import (
-	"log"
 	"net"
 	"net/http"
 	"net/rpc"
@@ -11,7 +10,7 @@ import (
 
 // ListenRPC start rpc server
 func ListenRPC(port string) {
-	log.Println("listen rpc:", port)
+	logger.Infof("listen rpc %s", port)
 	rpcServer := new(RPCServer)
 	rpc.Register(rpcServer)
 	rpc.HandleHTTP()
@@ -27,15 +26,15 @@ func ListenRPC(port string) {
 type RPCServer struct{}
 
 func (r *RPCServer) Sync(evtReq *structs.Event, evtResp *structs.Event) error {
-	log.Println(evtReq)
-
+	logger.Debugf("evtReq[%#v]", evtReq)
 	evt, err := eventProxy(evtReq)
 	if err != nil {
-		log.Println("[eventProxy]", err)
+		logger.Error(err)
 		return err
 	}
 	if evt != nil {
 		*evtResp = *evt
 	}
+	logger.Debugf("evtResp[%#v]", evtResp)
 	return nil
 }

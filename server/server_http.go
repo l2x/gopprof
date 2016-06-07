@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,7 +13,7 @@ import (
 
 // ListenHTTP start http server
 func ListenHTTP(port string) {
-	log.Println("listen http:", port)
+	logger.Infof("listen http %s", port)
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/stats", statsHandler)
 	http.HandleFunc("/upload", uploadHandler)
@@ -34,18 +33,22 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 
 	startTime, err := strconv.ParseInt(start, 10, 64)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
+		fmt.Fprint(w, err)
+		return
 	}
 	endTime, err := strconv.ParseInt(end, 10, 64)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
+		fmt.Fprint(w, err)
+		return
 	}
 
 	resp := map[string][]*structs.StatsData{}
 	for _, node := range strings.Split(nodes, ",") {
 		data, err := storeSaver.GetStatsByTime(node, startTime, endTime)
 		if err != nil {
-			log.Println(err)
+			logger.Error(err)
 			continue
 		}
 		resp[node] = data
@@ -53,22 +56,22 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.Marshal(resp)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 	}
 	fmt.Fprint(w, string(b))
 }
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("upload")
+	logger.Debug("upload")
 
 	r.ParseMultipartForm(10 * 1024 * 1024)
 	file, handler, err := r.FormFile("file")
 	if err != nil {
-		log.Println("[upload]", err)
+		logger.Error(err)
 		fmt.Fprint(w, err.Error())
 		return
 	}
 	defer file.Close()
 
-	fmt.Println(handler.Filename)
+	logger.Debug(handler.Filename)
 }
