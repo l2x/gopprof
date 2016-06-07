@@ -24,10 +24,8 @@ func ListenRPC(port string) {
 	}
 }
 
-// RPCServer is rpc server
 type RPCServer struct{}
 
-// Sync event
 func (r *RPCServer) Sync(evtReq *structs.Event, evtResp *structs.Event) error {
 	log.Println(evtReq)
 

@@ -7,7 +7,7 @@ import (
 	"github.com/l2x/gopprof/common/structs"
 )
 
-// StartStats enables stats for the current process.
+// StartStats start stats for the current process.
 func StartStats() structs.StatsData {
 	m := runtime.MemStats{}
 	runtime.ReadMemStats(&m)

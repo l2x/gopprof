@@ -5,28 +5,22 @@ import (
 	"time"
 )
 
-// EventType defined event type
-type EventType int
-
 const (
-	EventTypeNone EventType = iota
-	EventTypeRegister
-	EventTypeCallback
-	EventTypeExInfo
-)
-
-const (
-	EventTypeProfile EventType = iota + 100
-)
-
-const (
-	EventTypeStat EventType = iota + 200
+	EventTypeNone     EventType = 0
+	EventTypeRegister EventType = 1
+	EventTypeCallback EventType = 2
+	EventTypeExInfo   EventType = 3
+	EventTypeProfile  EventType = 4
+	EventTypeStat     EventType = 5
 )
 
 var (
 	mu    sync.Mutex
 	start int64
 )
+
+// EventType defined event
+type EventType int
 
 func init() {
 	start = time.Now().UnixNano()
@@ -41,7 +35,6 @@ func NextSequence() int64 {
 	return s
 }
 
-// Event struct
 type Event struct {
 	Type EventType
 	Data interface{}
@@ -49,7 +42,7 @@ type Event struct {
 	Ack  int64
 }
 
-// NewEvent return default event
+// NewEvent return event with autoincrementing integer sequence
 func NewEvent(typ EventType, data interface{}) *Event {
 	evt := &Event{
 		Type: typ,
@@ -59,7 +52,7 @@ func NewEvent(typ EventType, data interface{}) *Event {
 	return evt
 }
 
-// NewCallback return callback event
+// NewCallback return event with Ack
 func (e *Event) NewCallback(data interface{}) *Event {
 	evt := &Event{
 		Type: EventTypeCallback,

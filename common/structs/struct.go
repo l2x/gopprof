@@ -43,12 +43,10 @@ type ProfileData struct {
 	GC    bool
 }
 
-// NewProfileData .
 func NewProfileData() *ProfileData {
 	return &ProfileData{}
 }
 
-// ExInfo .
 type ExInfo struct {
 	HTTPListen string
 }

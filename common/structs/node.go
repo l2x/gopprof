@@ -13,7 +13,6 @@ type Node struct {
 	NodeConf
 }
 
-// NewNode return an Node
 func NewNode(NodeID string) *Node {
 	return &Node{
 		event: make(chan *Event, 20),

@@ -16,7 +16,6 @@ type Nodes struct {
 	mu    sync.RWMutex
 }
 
-// NewNodes return Nodes
 func NewNodes() *Nodes {
 	return &Nodes{
 		nodes: map[string]*structs.Node{},
@@ -32,7 +31,7 @@ func (n *Nodes) Add(nodeID string) *structs.Node {
 	return node
 }
 
-// Get node
+// Get node by nodeID
 func (n *Nodes) Get(nodeID string) (*structs.Node, bool) {
 	n.mu.RLock()
 	node, ok := n.nodes[nodeID]

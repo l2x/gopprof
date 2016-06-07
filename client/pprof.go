@@ -26,8 +26,8 @@ func init() {
 	}
 }
 
-// StartProfile enables profiling for the current process.
-// if success returns an profiling result file.
+// StartProfile start profiling for the current process.
+// if success returns an profiling file.
 func StartProfile(option *structs.ProfileData) (string, error) {
 	f, ok := pm[option.Type]
 	if !ok {
