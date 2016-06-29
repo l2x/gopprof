@@ -9,39 +9,66 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/l2x/gopprof/common/structs"
 )
 
 // ListenHTTP start http server
 func ListenHTTP(port string) {
 	logger.Infof("listen http %s", port)
-	http.HandleFunc("/", indexHandler)
-	http.HandleFunc("/stats", statsHandler)
-	http.HandleFunc("/upload", uploadHandler)
-	if err := http.ListenAndServe(port, nil); err != nil {
-		panic(err)
+	/*
+		http.HandleFunc("/", indexHandler)
+		http.HandleFunc("/stats", statsHandler)
+		http.HandleFunc("/upload", uploadHandler)
+		if err := http.ListenAndServe(port, nil); err != nil {
+			panic(err)
+		}
+	*/
+
+	//gin.SetMode(gin.ReleaseMode)
+	r := gin.Default()
+	r.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type,Token")
+		c.Next()
+	})
+
+	r.OPTIONS("/*cors", func(c *gin.Context) {})
+	r.GET("/nodes", nodesHandler)
+	r.POST("/stats", statsHandler)
+	r.Run(port)
+}
+
+func nodesHandler(c *gin.Context) {
+	nodes, err := storeSaver.GetNodes()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
 	}
+	c.JSON(http.StatusOK, nodes)
 }
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, time.Now().Unix())
-}
+func statsHandler(c *gin.Context) {
+	nodes := c.PostForm("nodes")
+	opt := c.PostForm("options")
+	start := c.PostForm("start")
+	end := c.PostForm("end")
 
-func statsHandler(w http.ResponseWriter, r *http.Request) {
-	nodes := r.URL.Query().Get("nodes")
-	start := r.URL.Query().Get("start")
-	end := r.URL.Query().Get("end")
+	c.JSON(http.StatusOK, []string{})
+	return
+
+	_ = opt
 
 	startTime, err := strconv.ParseInt(start, 10, 64)
 	if err != nil {
 		logger.Error(err)
-		fmt.Fprint(w, err)
+		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 	endTime, err := strconv.ParseInt(end, 10, 64)
 	if err != nil {
 		logger.Error(err)
-		fmt.Fprint(w, err)
+		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -55,11 +82,7 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 		resp[node] = data
 	}
 
-	b, err := json.Marshal(resp)
-	if err != nil {
-		logger.Error(err)
-	}
-	fmt.Fprint(w, string(b))
+	c.JSON(http.StatusOK, resp)
 }
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {

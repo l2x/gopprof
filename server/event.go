@@ -44,6 +44,10 @@ func eventRegister(evtReq *structs.Event) (*structs.Event, error) {
 		logger.Error(err)
 		return nil, err
 	}
+	if err = storeSaver.SaveNode(&nodeBase); err != nil {
+		return nil, err
+	}
+
 	node := nodesMap.Add(nodeBase.NodeID)
 	node.NodeConf = *nodeConf
 	node.LastSync = time.Now()

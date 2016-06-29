@@ -15,6 +15,7 @@ type Store interface {
 	Open(source string) error
 	Close() error
 
+	TableNode
 	TableConf
 	TableTag
 	TableProfile
@@ -30,11 +31,17 @@ type TableConf interface {
 	SaveDefaultConf(nodeConf *structs.NodeConf) (int64, error)
 }
 
+// TableNode is the interface defined table node
+type TableNode interface {
+	SaveNode(node *structs.NodeBase) error
+	GetNodes() ([]*structs.NodeBase, error)
+	GetNode(nodeID string) (*structs.NodeBase, error)
+}
+
 // TableTag is the interface defined table tags
 type TableTag interface {
 	TableTagName() string
 	GetTags() ([]string, error)
-	GetNodeByTag(tag string) ([]*structs.NodeConf, error)
 	SaveTags(nodeID string, tags []string) (int64, error)
 	DelTag(nodeID, tag string) error
 }

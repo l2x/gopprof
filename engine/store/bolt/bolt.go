@@ -46,6 +46,9 @@ func (b *Boltstore) init() error {
 		if _, err := tx.CreateBucketIfNotExists([]byte(b.TableTagName())); err != nil {
 			return err
 		}
+		if _, err := tx.CreateBucketIfNotExists([]byte(b.TableNodeName())); err != nil {
+			return err
+		}
 		return nil
 	})
 	if err != nil {
