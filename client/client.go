@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/l2x/gopprof/common/structs"
+	"github.com/l2x/gopprof/common/utils"
 )
 
 // Client is a gopprof client
@@ -21,6 +22,7 @@ type Client struct {
 // NewClient return client
 func NewClient(rpcServer, nodeID string) *Client {
 	node := structs.NewNode(nodeID)
+	node.InternalIP, _ = utils.GetInternalIP()
 	c := &Client{
 		rpcServer: rpcServer,
 		node:      node,
