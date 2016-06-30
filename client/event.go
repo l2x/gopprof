@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -71,6 +72,7 @@ func eventProfile(client *Client, evtReq *structs.Event) (*structs.Event, error)
 		opt.Created = time.Now().Unix()
 		opt.Status = 1
 		opt.NodeID = client.node.NodeID
+
 		data, err := json.Marshal(opt)
 		if err != nil {
 			log.Println(err)
@@ -78,6 +80,7 @@ func eventProfile(client *Client, evtReq *structs.Event) (*structs.Event, error)
 		}
 		params := map[string]string{
 			"data": string(data),
+			"type": strconv.Itoa(int(structs.EventTypeUploadProfile)),
 		}
 		_, err = fileUpload(fmt.Sprintf("%s/upload", client.httpServer), file, params)
 		if err != nil {

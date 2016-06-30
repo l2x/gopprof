@@ -2,9 +2,12 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -153,20 +156,30 @@ func pprofHandler(c *gin.Context) {
 
 	logger.Debug(string(body))
 
-	var response [][]*structs.ProfileData
+	response := []*structs.ProfileData{}
 	for _, nodeID := range req.Nodes {
 		data, err := storeSaver.GetProfilesByTime(nodeID, req.Date.Start, req.Date.End)
 		if err != nil {
 			logger.Error(err)
 			continue
 		}
-		response = append(response, data)
+		response = append(response, data...)
 	}
 	c.JSON(http.StatusOK, response)
 }
 
 func uploadHandler(c *gin.Context) {
 	c.Request.ParseMultipartForm(10 * 1024 * 1024)
+
+	v := c.Request.FormValue("type")
+	typ, err := strconv.Atoi(v)
+	if err != nil {
+		logger.Error(err)
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	eventType := structs.EventType(typ)
 	file, handler, err := c.Request.FormFile("file")
 	if err != nil {
 		logger.Error(err)
@@ -175,27 +188,43 @@ func uploadHandler(c *gin.Context) {
 	}
 	defer file.Close()
 
-	var data structs.ProfileData
-	v := c.Request.FormValue("data")
-	if err := json.Unmarshal([]byte(v), &data); err != nil {
-		logger.Error(err)
-		c.String(http.StatusBadRequest, err.Error())
-		return
+	switch eventType {
+	case structs.EventTypeUploadProfile:
+		err = uploadProfile(c, file, handler.Filename)
+	case structs.EventTypeUploadBin:
+		err = uploadBin()
+	default:
+		err = fmt.Errorf("Unknown event: %v", eventType)
 	}
-	logger.Debug(data)
-
-	fname := filepath.Join(data.NodeID, data.Type, time.Now().Format("2006/01/02"), handler.Filename)
-	if err = filesSaver.CopyTo(fname, file); err != nil {
-		logger.Error(err)
-		c.String(http.StatusBadRequest, err.Error())
-		return
-	}
-	data.File = fname
-	evtReq := structs.NewEvent(structs.EventTypeProfile, data)
-	if _, err = eventProfile(evtReq); err != nil {
-		logger.Error(err)
+	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 	c.Status(http.StatusOK)
+}
+
+func uploadProfile(c *gin.Context, file multipart.File, filename string) error {
+	var data structs.ProfileData
+	v := c.Request.FormValue("data")
+	if err := json.Unmarshal([]byte(v), &data); err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	fname := filepath.Join(data.NodeID, data.Type, time.Now().Format("2006/01/02"), filename)
+	if err := filesSaver.CopyTo(fname, file); err != nil {
+		logger.Error(err)
+		return err
+	}
+	data.File = fname
+	evtReq := structs.NewEvent(structs.EventTypeUploadProfile, data)
+	if _, err := eventUploadProfile(evtReq); err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
+}
+
+func uploadBin() error {
+	return nil
 }

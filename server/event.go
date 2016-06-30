@@ -113,7 +113,7 @@ func eventStat(evtReq *structs.Event) (*structs.Event, error) {
 	return nil, nil
 }
 
-func eventProfile(evtReq *structs.Event) (*structs.Event, error) {
+func eventUploadProfile(evtReq *structs.Event) (*structs.Event, error) {
 	data := evtReq.Data.(structs.ProfileData)
 	if err := storeSaver.SaveProfile(&data); err != nil {
 		logger.Error(err)

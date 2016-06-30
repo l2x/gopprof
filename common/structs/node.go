@@ -39,12 +39,12 @@ func (n *Node) AddEvent(evt *Event) error {
 
 // NodeBase storage node base information
 type NodeBase struct {
-	NodeID     string `json:"nodeid"`
-	Hostname   string `json:"hostname"`
-	InternalIP string `json:"internal_ip"`
+	NodeID     string
+	Hostname   string
+	InternalIP string
 	LastSync   time.Time
 	Created    time.Time
-	Status     uint8 `json:"status"`
+	Status     uint8
 }
 
 // NodeConf storage node config

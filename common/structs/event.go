@@ -6,12 +6,14 @@ import (
 )
 
 const (
-	EventTypeNone     EventType = 0
-	EventTypeRegister EventType = 1
-	EventTypeCallback EventType = 2
-	EventTypeExInfo   EventType = 3
-	EventTypeProfile  EventType = 4
-	EventTypeStat     EventType = 5
+	EventTypeNone          EventType = 0
+	EventTypeRegister      EventType = 1
+	EventTypeCallback      EventType = 2
+	EventTypeExInfo        EventType = 3
+	EventTypeProfile       EventType = 4
+	EventTypeStat          EventType = 5
+	EventTypeUploadProfile EventType = 6
+	EventTypeUploadBin     EventType = 7
 )
 
 var (

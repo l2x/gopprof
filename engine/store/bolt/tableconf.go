@@ -34,8 +34,8 @@ func (b *Boltstore) GetConf(nodeID string) (*structs.NodeConf, error) {
 func (b *Boltstore) GetDefaultConf() (*structs.NodeConf, error) {
 	// TODO for test
 	return &structs.NodeConf{
-		EnableStat:    true,
-		StatInterval:  20 * time.Second,
+		//EnableStat:    true,
+		//StatInterval:  20 * time.Second,
 		EnableProfile: true,
 		Profile: []structs.ProfileData{
 			structs.ProfileData{
