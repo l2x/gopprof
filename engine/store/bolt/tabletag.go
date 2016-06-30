@@ -11,8 +11,8 @@ func (b *Boltstore) GetTags() ([]string, error) {
 }
 
 // SaveTags save tags
-func (b *Boltstore) SaveTags(nodeID string, tags []string) (int64, error) {
-	return 0, nil
+func (b *Boltstore) SaveTags(nodeID string, tags []string) error {
+	return nil
 }
 
 // DelTag delete node tag

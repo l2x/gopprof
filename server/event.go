@@ -106,7 +106,7 @@ func eventStat(evtReq *structs.Event) (*structs.Event, error) {
 		logger.Error(err)
 		return nil, err
 	}
-	if _, err := storeSaver.SaveStat(&data); err != nil {
+	if err := storeSaver.SaveStat(&data); err != nil {
 		logger.Error(err)
 		return nil, err
 	}
@@ -115,8 +115,7 @@ func eventStat(evtReq *structs.Event) (*structs.Event, error) {
 
 func eventProfile(evtReq *structs.Event) (*structs.Event, error) {
 	data := evtReq.Data.(structs.ProfileData)
-	_, err := storeSaver.SaveProfile(&data)
-	if err != nil {
+	if err := storeSaver.SaveProfile(&data); err != nil {
 		logger.Error(err)
 		return nil, err
 	}

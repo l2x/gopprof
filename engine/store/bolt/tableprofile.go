@@ -15,15 +15,11 @@ func (b *Boltstore) TableProfileName(nodeID string) string {
 }
 
 // SaveProfile save profile data
-func (b *Boltstore) SaveProfile(data *structs.ProfileData) (int64, error) {
-	return data.ID, b.db.Update(func(tx *bolt.Tx) error {
+func (b *Boltstore) SaveProfile(data *structs.ProfileData) error {
+	return b.db.Update(func(tx *bolt.Tx) error {
 		buc, err := tx.CreateBucketIfNotExists([]byte(b.TableProfileName(data.NodeID)))
 		if err != nil {
 			return err
-		}
-		if data.ID == 0 {
-			id, _ := buc.NextSequence()
-			data.ID = int64(id)
 		}
 		k := fmt.Sprintf("%s_%d", data.NodeID, data.Created)
 		v, err := json.Marshal(data)
