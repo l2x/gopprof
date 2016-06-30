@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -66,6 +67,7 @@ func eventProfile(client *Client, evtReq *structs.Event) (*structs.Event, error)
 			os.Remove(file)
 		}()
 
+		opt.Version = runtime.Version()
 		opt.Created = time.Now().Unix()
 		opt.Status = 1
 		opt.NodeID = client.node.NodeID

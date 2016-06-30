@@ -26,6 +26,7 @@ func ListenHTTP(port string) {
 	r.OPTIONS("/*cors", func(c *gin.Context) {})
 	r.GET("/nodes", nodesHandler)
 	r.POST("/stats", statsHandler)
+	r.POST("/pprof", pprofHandler)
 	r.POST("/upload", uploadHandler)
 	r.Run(port)
 }
@@ -130,6 +131,38 @@ func statsParser(typ string, data *structs.StatsData) int64 {
 		return int64(data.PauseNs[(data.NumGC+255)%256])
 	}
 	return 0
+}
+
+func pprofHandler(c *gin.Context) {
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		logger.Error(err)
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	var req *statsReq
+	if err = json.Unmarshal(body, &req); err != nil {
+		logger.Error(err)
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	if len(req.Nodes) == 0 || len(req.Options) == 0 {
+		c.String(http.StatusBadRequest, "nodes or options invalid")
+		return
+	}
+
+	logger.Debug(string(body))
+
+	var response [][]*structs.ProfileData
+	for _, nodeID := range req.Nodes {
+		data, err := storeSaver.GetProfilesByTime(nodeID, req.Date.Start, req.Date.End)
+		if err != nil {
+			logger.Error(err)
+			continue
+		}
+		response = append(response, data)
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 func uploadHandler(c *gin.Context) {
