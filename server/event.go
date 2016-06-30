@@ -12,6 +12,7 @@ var eventFunc = map[structs.EventType]func(evtReq *structs.Event) (*structs.Even
 	structs.EventTypeNone:     eventNone,
 	structs.EventTypeRegister: eventRegister,
 	structs.EventTypeStat:     eventStat,
+	structs.EventTypeBinCheck: eventBinCheck,
 	structs.EventTypeCallback: eventCallback,
 }
 
@@ -152,4 +153,18 @@ func taskStats(node *structs.Node) (*structs.Event, error) {
 	}
 	node.LastStat = time.Now()
 	return structs.NewEvent(structs.EventTypeStat, nil), nil
+}
+
+func eventBinCheck(evtReq *structs.Event) (*structs.Event, error) {
+	exInfo, ok := evtReq.Data.(structs.ExInfo)
+	if !ok {
+		err := fmt.Errorf("Event data invalid: %#v", evtReq)
+		logger.Error(err)
+		return nil, err
+	}
+	_, err := storeSaver.GetBin(exInfo.NodeID, exInfo.MD5)
+	if err != nil {
+		return structs.NewEvent(structs.EventTypeUploadBin, nil), nil
+	}
+	return nil, nil
 }

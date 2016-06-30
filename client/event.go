@@ -14,11 +14,12 @@ import (
 )
 
 var eventFunc = map[structs.EventType]func(client *Client, evtReq *structs.Event) (*structs.Event, error){
-	structs.EventTypeNone:     eventNone,
-	structs.EventTypeRegister: eventRegister,
-	structs.EventTypeProfile:  eventProfile,
-	structs.EventTypeStat:     eventStat,
-	structs.EventTypeExInfo:   eventExInfo,
+	structs.EventTypeNone:      eventNone,
+	structs.EventTypeRegister:  eventRegister,
+	structs.EventTypeProfile:   eventProfile,
+	structs.EventTypeStat:      eventStat,
+	structs.EventTypeExInfo:    eventExInfo,
+	structs.EventTypeUploadBin: eventUploadBin,
 }
 
 func eventProxy(client *Client, evtReq *structs.Event) (*structs.Event, error) {
@@ -72,6 +73,7 @@ func eventProfile(client *Client, evtReq *structs.Event) (*structs.Event, error)
 		opt.Created = time.Now().Unix()
 		opt.Status = 1
 		opt.NodeID = client.node.NodeID
+		opt.BinMd5 = client.binMd5
 
 		data, err := json.Marshal(opt)
 		if err != nil {
@@ -95,4 +97,29 @@ func eventStat(client *Client, evtReq *structs.Event) (*structs.Event, error) {
 	data := StartStats()
 	data.NodeID = client.node.NodeID
 	return structs.NewEvent(structs.EventTypeStat, data), nil
+}
+
+func eventUploadBin(client *Client, evtReq *structs.Event) (*structs.Event, error) {
+	file, _, err := GetBinFile()
+	if err != nil {
+		log.Println(err)
+		return nil, nil
+	}
+
+	info := structs.ExInfo{NodeID: client.node.NodeID, MD5: client.binMd5}
+	data, err := json.Marshal(info)
+	if err != nil {
+		log.Println(err)
+		return nil, nil
+	}
+	params := map[string]string{
+		"data": string(data),
+		"type": strconv.Itoa(int(structs.EventTypeUploadBin)),
+	}
+	_, err = fileUpload(fmt.Sprintf("%s/upload", client.httpServer), file, params)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return nil, nil
 }

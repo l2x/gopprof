@@ -32,6 +32,7 @@ type ProfileData struct {
 	Created int64
 	File    string
 	Version string // go version
+	BinMd5  string // binary file md5
 
 	// status
 	Status int // 0 - pending, 1 - success, 2 - failed
@@ -48,5 +49,7 @@ func NewProfileData() *ProfileData {
 }
 
 type ExInfo struct {
+	NodeID     string
 	HTTPListen string
+	MD5        string
 }

@@ -20,6 +20,7 @@ type Store interface {
 	TableTag
 	TableProfile
 	TableStat
+	TableBin
 }
 
 // TableConf is the interface defined table conf
@@ -60,6 +61,13 @@ type TableStat interface {
 	SaveStat(data *structs.StatsData) error
 	GetStatsByTime(nodeID string, timeStart, timeEnd int64) ([]*structs.StatsData, error)
 	GetStatsLatest(nodeID string, num int) ([]*structs.StatsData, error)
+}
+
+// TableBin is the interface defined table bin
+type TableBin interface {
+	TableBinName(nodeID string) string
+	SaveBin(nodeID, binMd5, file string) error
+	GetBin(nodeID, binMd5 string) (string, error)
 }
 
 // Register makes a database driver available by the provided name.

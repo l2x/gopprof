@@ -14,6 +14,7 @@ const (
 	EventTypeStat          EventType = 5
 	EventTypeUploadProfile EventType = 6
 	EventTypeUploadBin     EventType = 7
+	EventTypeBinCheck      EventType = 8
 )
 
 var (

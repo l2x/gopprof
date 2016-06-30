@@ -7,14 +7,14 @@ import (
 )
 
 // GetBinFile return current running process file
-func GetBinFile() ([]byte, error) {
+func GetBinFile() (string, []byte, error) {
 	bf, err := filepath.Abs(os.Args[0])
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	b, err := ioutil.ReadFile(bf)
 	if err != nil {
-		return nil, err
+		return bf, nil, err
 	}
-	return b, nil
+	return bf, b, nil
 }

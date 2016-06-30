@@ -1,6 +1,7 @@
 package client
 
 import (
+	"crypto/md5"
 	"fmt"
 	"io"
 	"log"
@@ -16,6 +17,7 @@ type Client struct {
 	rpc        *rpc.Client
 	rpcServer  string
 	httpServer string
+	binMd5     string
 	node       *structs.Node
 }
 
@@ -43,10 +45,7 @@ func (c *Client) Run() error {
 }
 
 func (c *Client) register() error {
-	evtReq := &structs.Event{
-		Type: structs.EventTypeRegister,
-		Data: c.node.NodeBase,
-	}
+	evtReq := structs.NewEvent(structs.EventTypeRegister, c.node.NodeBase)
 	evtResp, err := c.sync(evtReq)
 	if err != nil {
 		log.Println("[register]", err)
@@ -63,6 +62,14 @@ func (c *Client) register() error {
 
 func (c *Client) run() {
 	var evtReq *structs.Event
+
+	_, b, err := GetBinFile()
+	if err == nil {
+		c.binMd5 = fmt.Sprintf("%x", md5.Sum(b))
+		info := structs.ExInfo{NodeID: c.node.NodeID, MD5: c.binMd5}
+		evtReq = structs.NewEvent(structs.EventTypeBinCheck, info)
+	}
+
 	for {
 		if evtReq == nil {
 			select {
