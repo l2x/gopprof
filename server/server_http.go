@@ -1,11 +1,15 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -31,6 +35,7 @@ func ListenHTTP(port string) {
 	r.POST("/stats", statsHandler)
 	r.POST("/pprof", pprofHandler)
 	r.POST("/upload", uploadHandler)
+	r.GET("/download", downloadHandler)
 	r.Run(port)
 }
 
@@ -192,7 +197,7 @@ func uploadHandler(c *gin.Context) {
 	case structs.EventTypeUploadProfile:
 		err = uploadProfile(c, file, handler.Filename)
 	case structs.EventTypeUploadBin:
-		err = uploadBin()
+		err = uploadBin(c, file)
 	default:
 		err = fmt.Errorf("Unknown event: %v", eventType)
 	}
@@ -217,14 +222,94 @@ func uploadProfile(c *gin.Context, file multipart.File, filename string) error {
 		return err
 	}
 	data.File = fname
-	evtReq := structs.NewEvent(structs.EventTypeUploadProfile, data)
-	if _, err := eventUploadProfile(evtReq); err != nil {
-		logger.Error(err)
+	if err := eventUploadProfile(data); err != nil {
 		return err
 	}
 	return nil
 }
 
-func uploadBin() error {
+func uploadBin(c *gin.Context, file multipart.File) error {
+	var data structs.ExInfo
+	v := c.Request.FormValue("data")
+	if err := json.Unmarshal([]byte(v), &data); err != nil {
+		logger.Error(err)
+		return err
+	}
+	fname := filepath.Join(data.NodeID, "bin", time.Now().Format("2006/01/02"), data.MD5)
+	if err := filesSaver.CopyTo(fname, file); err != nil {
+		logger.Error(err)
+		return err
+	}
+	if err := eventUploadBin(data, fname); err != nil {
+		return err
+	}
 	return nil
+}
+
+func downloadHandler(c *gin.Context) {
+	typ := c.Query("type")
+	var data structs.ProfileData
+	if err := json.Unmarshal([]byte(c.Query("data")), &data); err != nil {
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var (
+		b     []byte
+		fname string
+		err   error
+	)
+	switch typ {
+	case "bin":
+	case "pdf":
+		pdfFile := data.File + ".pdf"
+		fname = filepath.Base(pdfFile)
+		if b, err = filesSaver.Get(pdfFile); err != nil {
+			if b, err = pprofToPDF(&data); err != nil {
+				c.String(http.StatusInternalServerError, err.Error())
+				return
+			}
+		}
+	case "pprof":
+		fname = filepath.Base(data.File)
+		if b, err = filesSaver.Get(data.File); err != nil {
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+	default:
+		c.String(http.StatusBadRequest, "download type unsupport")
+		return
+	}
+
+	c.Writer.Header().Set("Content-Disposition", "attachment; filename="+fname)
+	c.Writer.Header().Set("Content-Type", c.Request.Header.Get("Content-Type"))
+	io.Copy(c.Writer, bytes.NewBuffer(b))
+}
+
+func pprofToPDF(data *structs.ProfileData) ([]byte, error) {
+	tmpDir := fmt.Sprintf("tmp/%s", time.Now().UnixNano())
+	defer os.RemoveAll(tmpDir)
+
+	var (
+		goBin        string
+		tmpBinFile   string
+		tmpPprofFile string
+		tmpPdfFile   string
+	)
+
+	// TODO get go
+	cmd := fmt.Sprintf("%s tool pprof -pdf %s %s > %s", goBin, tmpBinFile, tmpPprofFile, tmpPdfFile)
+	_, err := exec.Command("sh", "-c", cmd).Output()
+	if err != nil {
+		return nil, err
+	}
+	b, err := ioutil.ReadFile(tmpPdfFile)
+	if err != nil {
+		return nil, err
+	}
+	pdfFile := data.File + ".pdf"
+	if err = filesSaver.Save(pdfFile, b); err != nil {
+		return nil, err
+	}
+	return b, nil
 }

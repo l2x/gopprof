@@ -54,12 +54,10 @@ func runMem(i int) {
 
 func runGoroutine(n int) {
 	rand.Seed(time.Now().UnixNano())
-
 	for i := 0; i < rand.Intn(n); i++ {
 		go func() {
 			time.Sleep(1 * time.Second)
 		}()
 	}
-
 	time.Sleep(time.Duration(rand.Intn(500)) * time.Millisecond)
 }

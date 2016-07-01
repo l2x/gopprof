@@ -114,15 +114,6 @@ func eventStat(evtReq *structs.Event) (*structs.Event, error) {
 	return nil, nil
 }
 
-func eventUploadProfile(evtReq *structs.Event) (*structs.Event, error) {
-	data := evtReq.Data.(structs.ProfileData)
-	if err := storeSaver.SaveProfile(&data); err != nil {
-		logger.Error(err)
-		return nil, err
-	}
-	return nil, nil
-}
-
 func eventCallback(evtReq *structs.Event) (*structs.Event, error) {
 	return nil, nil
 }
@@ -167,4 +158,20 @@ func eventBinCheck(evtReq *structs.Event) (*structs.Event, error) {
 		return structs.NewEvent(structs.EventTypeUploadBin, nil), nil
 	}
 	return nil, nil
+}
+
+func eventUploadProfile(data structs.ProfileData) error {
+	if err := storeSaver.SaveProfile(&data); err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
+}
+
+func eventUploadBin(data structs.ExInfo, file string) error {
+	if err := storeSaver.SaveBin(data.NodeID, data.MD5, file); err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
 }
