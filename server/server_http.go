@@ -16,6 +16,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/l2x/gopprof/common/structs"
+	"github.com/l2x/gopprof/common/utils"
 )
 
 // ListenHTTP start http server
@@ -163,12 +164,17 @@ func pprofHandler(c *gin.Context) {
 
 	response := []*structs.ProfileData{}
 	for _, nodeID := range req.Nodes {
-		data, err := storeSaver.GetProfilesByTime(nodeID, req.Date.Start, req.Date.End)
+		datas, err := storeSaver.GetProfilesByTime(nodeID, req.Date.Start, req.Date.End)
 		if err != nil {
 			logger.Error(err)
 			continue
 		}
-		response = append(response, data...)
+
+		for _, data := range datas {
+			if utils.InStringSlice(data.Type, req.Options) {
+				response = append(response, data)
+			}
+		}
 	}
 	c.JSON(http.StatusOK, response)
 }
@@ -286,20 +292,37 @@ func downloadHandler(c *gin.Context) {
 	io.Copy(c.Writer, bytes.NewBuffer(b))
 }
 
+// TODO
 func pprofToPDF(data *structs.ProfileData) ([]byte, error) {
-	tmpDir := fmt.Sprintf("tmp/%s", time.Now().UnixNano())
+	var (
+		tmpDir       = fmt.Sprintf("tmp/%s", time.Now().UnixNano())
+		goBin        = "go"
+		tmpBinFile   = ""
+		tmpPprofFile = ""
+		tmpPdfFile   = ""
+	)
+	os.MkdirAll(tmpDir, 0755)
 	defer os.RemoveAll(tmpDir)
 
-	var (
-		goBin        string
-		tmpBinFile   string
-		tmpPprofFile string
-		tmpPdfFile   string
-	)
+	fname, err := storeSaver.GetBin(data.NodeID, data.BinMd5)
+	if err != nil {
+		logger.Error(err)
+	}
+	tmpBinFile = filepath.Join(tmpDir, filepath.Base(fname))
+	if err = filesSaver.CopyFile(fname, tmpBinFile); err != nil {
+		logger.Error(err)
+		tmpBinFile = ""
+	}
 
-	// TODO get go
+	tmpPprofFile = filepath.Join(tmpDir, filepath.Base(data.File))
+	if err = filesSaver.CopyFile(data.File, tmpPprofFile); err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+	tmpPdfFile = tmpPdfFile + ".pdf"
+
 	cmd := fmt.Sprintf("%s tool pprof -pdf %s %s > %s", goBin, tmpBinFile, tmpPprofFile, tmpPdfFile)
-	_, err := exec.Command("sh", "-c", cmd).Output()
+	_, err = exec.Command("sh", "-c", cmd).Output()
 	if err != nil {
 		return nil, err
 	}

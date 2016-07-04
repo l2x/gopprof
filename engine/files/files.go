@@ -17,6 +17,7 @@ type Files interface {
 	Save(fname string, data []byte) error
 	CopyTo(dst string, src io.Reader) error
 	Get(fname string) ([]byte, error)
+	CopyFile(src, dst string) error
 }
 
 // Register makes a database driver available by the provided name.

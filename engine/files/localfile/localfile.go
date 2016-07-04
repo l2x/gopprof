@@ -65,3 +65,15 @@ func (f *Localfile) CopyTo(dst string, src io.Reader) error {
 func (f *Localfile) Get(fname string) ([]byte, error) {
 	return ioutil.ReadFile(filepath.Join(f.base, fname))
 }
+
+func (f *Localfile) CopyFile(src, dst string) error {
+	b, err := f.Get(src)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(dst, b, 0755)
+	if err != nil {
+		return err
+	}
+	return nil
+}
