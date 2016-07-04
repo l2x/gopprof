@@ -4,4 +4,5 @@ package main
 const GitCommit = ""
 
 // The main version number
-const Version = ""
+const Version = "1.0"
+const BuildVersion = ""

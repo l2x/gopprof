@@ -21,7 +21,7 @@ func Register(driver string, f func() Database) {
 func Open(driver, source string) (Database, error) {
 	driveri, ok := drivers[driver]
 	if !ok {
-		return nil, fmt.Errorf("sql: unknown driver %q (forgotten import?)", driver)
+		return nil, fmt.Errorf("engine/database: unknown driver %q (forgotten import?)", driver)
 	}
 	s := driveri()
 	if err := s.Open(source); err != nil {
