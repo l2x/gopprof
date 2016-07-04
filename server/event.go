@@ -41,7 +41,7 @@ func eventRegister(evtReq *structs.Event) (*structs.Event, error) {
 	if err == sql.ErrNoRows {
 		nodeConf, err = storeSaver.GetDefaultConf()
 	}
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		logger.Error(err)
 		return nil, err
 	}

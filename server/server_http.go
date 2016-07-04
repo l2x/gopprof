@@ -295,7 +295,7 @@ func downloadHandler(c *gin.Context) {
 // TODO
 func pprofToPDF(data *structs.ProfileData) ([]byte, error) {
 	var (
-		tmpDir       = fmt.Sprintf("tmp/%s", time.Now().UnixNano())
+		tmpDir       = fmt.Sprintf("tmp/%d", time.Now().UnixNano())
 		goBin        = "go"
 		tmpBinFile   = ""
 		tmpPprofFile = ""
@@ -322,16 +322,20 @@ func pprofToPDF(data *structs.ProfileData) ([]byte, error) {
 	tmpPdfFile = tmpPdfFile + ".pdf"
 
 	cmd := fmt.Sprintf("%s tool pprof -pdf %s %s > %s", goBin, tmpBinFile, tmpPprofFile, tmpPdfFile)
-	_, err = exec.Command("sh", "-c", cmd).Output()
+	b, err := exec.Command("sh", "-c", cmd).Output()
 	if err != nil {
+		err = fmt.Errorf("%s,%s,%s", cmd, err.Error(), string(b))
+		logger.Error(err)
 		return nil, err
 	}
-	b, err := ioutil.ReadFile(tmpPdfFile)
+	b, err = ioutil.ReadFile(tmpPdfFile)
 	if err != nil {
+		logger.Error(err)
 		return nil, err
 	}
 	pdfFile := data.File + ".pdf"
 	if err = filesSaver.Save(pdfFile, b); err != nil {
+		logger.Error(err)
 		return nil, err
 	}
 	return b, nil
