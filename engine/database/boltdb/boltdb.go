@@ -50,6 +50,10 @@ func (b *BoltDB) TableConfig(nodeID string) database.TableConfig {
 	return NewTableConfig(b.db, nodeID)
 }
 
+func (b *BoltDB) TableNode(nodeID string) database.TableNode {
+	return NewTableNode(b.db, nodeID)
+}
+
 func (b *BoltDB) init() error {
 	return b.db.Update(func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists(NewTableNode(nil, "").Table()); err != nil {

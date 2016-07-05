@@ -15,7 +15,7 @@ var logconf = `
 			<console/>
 		</filter>
 		<filter levels="trace,debug,info,warn,error,critical">
-		    <rollingfile type="date" filename="#log_path#" datepattern="2006.01.02" maxrolls="7" />
+		    <rollingfile type="date" filename="#filename#" datepattern="2006.01.02" maxrolls="7" />
 		</filter>
     </outputs>
     <formats>
@@ -34,7 +34,7 @@ func initLogger(logPath string, debug bool) error {
 	} else {
 		logconf = strings.Replace(logconf, "#debug_output#", "off", 1)
 	}
-	logconf = strings.Replace(logconf, "#log_path#", filepath.Join(logPath, "gopprof.log"), 1)
+	logconf = strings.Replace(logconf, "#filename#", filepath.Join(logPath, "gopprof.log"), 1)
 
 	var err error
 	logger, err = seelog.LoggerFromConfigAsString(logconf)

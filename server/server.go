@@ -30,7 +30,7 @@ func Main() {
 }
 
 // Exit func
-func Exit(signal string) {
+func Exit(signal ...string) {
 	logger.Info("exit:", signal)
 
 	if db != nil {

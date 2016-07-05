@@ -4,6 +4,7 @@ import (
 	"github.com/l2x/gopprof/engine/database"
 	_ "github.com/l2x/gopprof/engine/database/boltdb"
 	st "github.com/l2x/gopprof/engine/store"
+	_ "github.com/l2x/gopprof/engine/store/localfile"
 )
 
 var (

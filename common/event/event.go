@@ -1,13 +1,19 @@
 package event
 
 import (
+	"encoding/gob"
 	"sync/atomic"
 	"time"
 )
 
 const (
-	EventTypeNode = 0
+	EventTypeNone     = 0
+	EventTypeRegister = 1
 )
+
+func init() {
+	gob.Register(&Event{})
+}
 
 type EventType int
 

@@ -38,7 +38,7 @@ type Database interface {
 	TableStats(nodeID string) TableStats
 	TableProfile(nodeID string) TableProfile
 	TableConfig(nodeID string) TableConfig
-	//	TableNode(nodeID string) TableNode
+	TableNode(nodeID string) TableNode
 }
 
 // TableStats save stats data

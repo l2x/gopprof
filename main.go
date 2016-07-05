@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,9 +11,9 @@ import (
 
 func main() {
 	if err := server.Init(args()); err != nil {
-		log.Fatal(err)
+		server.Exit()
 	}
-	defer server.Exit("")
+	defer server.Exit()
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
