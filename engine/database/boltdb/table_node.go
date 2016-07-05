@@ -52,3 +52,19 @@ func (t *TableNode) Get() (*structs.NodeBase, error) {
 	})
 	return nodeBase, err
 }
+
+func (t *TableNode) GetAll() ([]*structs.NodeBase, error) {
+	nodes := []*structs.NodeBase{}
+	err := t.db.View(func(tx *bolt.Tx) error {
+		tx.Bucket(t.Table()).ForEach(func(k, v []byte) error {
+			var nodeBase *structs.NodeBase
+			if err := json.Unmarshal(v, &nodeBase); err != nil {
+				return err
+			}
+			nodes = append(nodes, nodeBase)
+			return nil
+		})
+		return nil
+	})
+	return nodes, err
+}

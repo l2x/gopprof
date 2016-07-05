@@ -65,3 +65,13 @@ func isInternalIP(ipStr string) bool {
 	}
 	return false
 }
+
+// InStringSlice return true if s in arr
+func InStringSlice(s string, arr []string) bool {
+	for _, v := range arr {
+		if v == s {
+			return true
+		}
+	}
+	return false
+}

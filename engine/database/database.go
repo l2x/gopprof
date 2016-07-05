@@ -54,6 +54,7 @@ type TableProfile interface {
 	Table() []byte
 	Save(data *structs.ProfileData) error
 	GetRangeTime(start, end int64) ([]*structs.ProfileData, error)
+	GetCreated(created int64) (*structs.ProfileData, error)
 }
 
 // TableConfig save all configure
@@ -70,6 +71,7 @@ type TableNode interface {
 	Table() []byte
 	Save(data *structs.NodeBase) error
 	Get() (*structs.NodeBase, error)
+	GetAll() ([]*structs.NodeBase, error)
 }
 
 // TableBin save binary file info

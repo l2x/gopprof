@@ -2,6 +2,7 @@ package boltdb
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 
@@ -50,8 +51,8 @@ func (t *TableProfile) GetRangeTime(start, end int64) ([]*structs.ProfileData, e
 		if b == nil {
 			return nil
 		}
-		min := []byte(fmt.Sprintf("%s_%d", t.nodeID, start))
-		max := []byte(fmt.Sprintf("%s_%d", t.nodeID, end))
+		min := []byte(fmt.Sprintf("%d", t.nodeID, start))
+		max := []byte(fmt.Sprintf("%d", t.nodeID, end))
 		c := b.Cursor()
 		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
 			var d *structs.ProfileData
@@ -59,6 +60,25 @@ func (t *TableProfile) GetRangeTime(start, end int64) ([]*structs.ProfileData, e
 				return err
 			}
 			data = append(data, d)
+		}
+		return nil
+	})
+	return data, err
+}
+
+func (t *TableProfile) GetCreated(created int64) (*structs.ProfileData, error) {
+	var data *structs.ProfileData
+	err := t.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(t.Table())
+		if b == nil {
+			return sql.ErrNoRows
+		}
+		v := b.Get([]byte(fmt.Sprintf("%d", created)))
+		if v == nil {
+			return sql.ErrNoRows
+		}
+		if err := json.Unmarshal(v, &data); err != nil {
+			return err
 		}
 		return nil
 	})

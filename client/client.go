@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/rpc"
+	"reflect"
 	"time"
 
 	"github.com/l2x/gopprof/common/event"
@@ -120,5 +121,6 @@ func (c *Client) reconnect(e error) error {
 	if e != io.EOF && e != io.ErrUnexpectedEOF && e != rpc.ErrShutdown {
 		return nil
 	}
+	fmt.Println(reflect.TypeOf(e))
 	return c.connect()
 }

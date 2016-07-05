@@ -3,7 +3,10 @@
 // Store save profiling files.
 package store
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+)
 
 var (
 	drivers = map[string]func() Store{}
@@ -31,4 +34,9 @@ func Open(driver, source string) (Store, error) {
 type Store interface {
 	Open(souce string) error
 	Close() error
+
+	Save(fname string, data []byte) error
+	Copy(dst string, src io.Reader) error
+	Get(fname string) ([]byte, error)
+	CopyToLocal(dst, src string) error
 }

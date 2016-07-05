@@ -9,4 +9,8 @@ func init() {
 type ProfileData struct {
 	NodeID  string
 	Created int64
+
+	Type   string
+	File   string
+	BinMD5 string
 }
