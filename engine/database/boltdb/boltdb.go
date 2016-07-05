@@ -54,12 +54,19 @@ func (b *BoltDB) TableNode(nodeID string) database.TableNode {
 	return NewTableNode(b.db, nodeID)
 }
 
+func (b *BoltDB) TableBin(nodeID string) database.TableBin {
+	return NewTableBin(b.db, nodeID)
+}
+
 func (b *BoltDB) init() error {
 	return b.db.Update(func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists(NewTableNode(nil, "").Table()); err != nil {
 			return err
 		}
 		if _, err := tx.CreateBucketIfNotExists(NewTableConfig(nil, "").Table()); err != nil {
+			return err
+		}
+		if _, err := tx.CreateBucketIfNotExists(NewTableBin(nil, "").Table()); err != nil {
 			return err
 		}
 		return nil

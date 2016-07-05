@@ -16,7 +16,7 @@ func Init(args []string) error {
 	if err := initDB(conf.DBDriver, conf.DBSource); err != nil {
 		return err
 	}
-	if err := initStore(conf.StoreDriver, conf.StoreDriver); err != nil {
+	if err := initStore(conf.StoreDriver, conf.StoreSource); err != nil {
 		return err
 	}
 	return nil

@@ -1,0 +1,67 @@
+package util
+
+import (
+	"io/ioutil"
+	"net"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+)
+
+// GetBinFile return current running process file
+func GetBinFile() (string, []byte, error) {
+	bf, err := filepath.Abs(os.Args[0])
+	if err != nil {
+		return "", nil, err
+	}
+	b, err := ioutil.ReadFile(bf)
+	if err != nil {
+		return bf, nil, err
+	}
+	return bf, b, nil
+}
+
+// GetNetInterfaceIP return net interface ip
+func GetNetInterfaceIP() ([]string, []string, error) {
+	var internalIP, externalIP []string
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return nil, nil, err
+	}
+	for _, a := range addrs {
+		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			ipv4 := ipnet.IP.To4()
+			if ipv4 == nil {
+				continue
+			}
+			if isInternalIP(ipv4.String()) {
+				internalIP = append(internalIP, ipv4.String())
+			} else {
+				externalIP = append(externalIP, ipv4.String())
+			}
+		}
+	}
+	return internalIP, externalIP, nil
+}
+
+func isInternalIP(ipStr string) bool {
+	if strings.HasPrefix(ipStr, "10.") || strings.HasPrefix(ipStr, "192.168.") {
+		return true
+	}
+	if strings.HasPrefix(ipStr, "172.") {
+		// 172.16.0.0-172.31.255.255
+		arr := strings.Split(ipStr, ".")
+		if len(arr) != 4 {
+			return false
+		}
+		second, err := strconv.ParseInt(arr[1], 10, 64)
+		if err != nil {
+			return false
+		}
+		if second >= 16 && second <= 31 {
+			return true
+		}
+	}
+	return false
+}

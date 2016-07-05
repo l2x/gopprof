@@ -39,6 +39,7 @@ type Database interface {
 	TableProfile(nodeID string) TableProfile
 	TableConfig(nodeID string) TableConfig
 	TableNode(nodeID string) TableNode
+	TableBin(nodeID string) TableBin
 }
 
 // TableStats save stats data
@@ -60,6 +61,8 @@ type TableConfig interface {
 	Table() []byte
 	Save(data *structs.NodeConf) error
 	Get() (*structs.NodeConf, error)
+	GetDefault() (*structs.NodeConf, error)
+	SaveDefault(data *structs.NodeConf) error
 }
 
 // TableNode save all node info
@@ -67,4 +70,11 @@ type TableNode interface {
 	Table() []byte
 	Save(data *structs.NodeBase) error
 	Get() (*structs.NodeBase, error)
+}
+
+// TableBin save binary file info
+type TableBin interface {
+	Table() []byte
+	Save(binMD5 string, file string) error
+	Get(binMD5 string) (string, error)
 }

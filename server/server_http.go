@@ -4,6 +4,7 @@ import "github.com/gin-gonic/gin"
 
 // ListenHTTP start http server
 func ListenHTTP(port string) {
+	logger.Infof("listen http %s", port)
 	if conf.Debug == false {
 		gin.SetMode(gin.ReleaseMode)
 	}

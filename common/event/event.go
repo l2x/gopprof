@@ -7,8 +7,13 @@ import (
 )
 
 const (
-	EventTypeNone     = 0
-	EventTypeRegister = 1
+	EventTypeNone          = 0
+	EventTypeRegister      = 1
+	EventTypeStats         = 2
+	EventTypeUploadProfile = 3
+	EventTypeUploadBin     = 4
+	EventTypeConf          = 5
+	EventTypeExInfo        = 6
 )
 
 func init() {
