@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -39,6 +40,7 @@ func ListenHTTP(port string) {
 	r.POST("/upload", uploadHandler)
 	r.GET("/download", downloadHandler)
 	r.GET("/setting", settingHandler)
+	r.POST("/setting/save", settingSaveHandler)
 
 	if err := r.Run(port); err != nil {
 		logger.Criticalf("Cannot start http server: %s", err)
@@ -90,6 +92,61 @@ func settingHandler(c *gin.Context) {
 		nodeConf, _ = db.TableConfig(nodeID).Get()
 	}
 	c.JSON(http.StatusOK, nodeConf)
+}
+
+type settingReq struct {
+	NodeConf structs.NodeConf `json:"conf"`
+	Nodes    []string         `json:"nodes"`
+}
+
+func settingSaveHandler(c *gin.Context) {
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		logger.Error(err)
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var req *settingReq
+	if err = json.Unmarshal(body, &req); err != nil {
+		logger.Error(err)
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	if req.Nodes == nil || len(req.Nodes) == 0 {
+		err := errors.New("node empty")
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if !req.NodeConf.EnableProfile {
+		req.NodeConf.Profile = []string{}
+		req.NodeConf.ProfileCron = ""
+	}
+	if !req.NodeConf.EnableStats {
+		req.NodeConf.StatsCron = ""
+	}
+	var dfa bool
+	if len(req.Nodes) == 1 && req.Nodes[0] == "_default" {
+		dfa = true
+	}
+
+	if dfa {
+		if err := db.TableConfig(req.Nodes[0]).SaveDefault(&req.NodeConf); err != nil {
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+		c.Status(http.StatusOK)
+		return
+	}
+
+	for _, nodeID := range req.Nodes {
+		if err = db.TableConfig(nodeID).Save(&req.NodeConf); err != nil {
+			logger.Error(err)
+			continue
+		}
+	}
+	c.Status(http.StatusOK)
 }
 
 func statsHandler(c *gin.Context) {
