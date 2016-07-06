@@ -1,8 +1,12 @@
 package util
 
 import (
+	"bytes"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -74,4 +78,72 @@ func InStringSlice(s string, arr []string) bool {
 		}
 	}
 	return false
+}
+
+// PostFile post a file
+func PostFile(uri, file string, params map[string]string) ([]byte, error) {
+	f, err := os.Open(file)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("file", filepath.Base(file))
+	if err != nil {
+		return nil, err
+	}
+	_, err = io.Copy(part, f)
+	if err != nil {
+		return nil, err
+	}
+
+	for key, val := range params {
+		_ = writer.WriteField(key, val)
+	}
+	contentType := writer.FormDataContentType()
+	writer.Close()
+
+	resp, err := http.Post(uri, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return respBody, nil
+}
+
+// PostData post data
+func PostData(uri, fname string, data []byte, params map[string]string) ([]byte, error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("file", fname)
+	if err != nil {
+		return nil, err
+	}
+	_, err = io.Copy(part, bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+
+	for key, val := range params {
+		_ = writer.WriteField(key, val)
+	}
+	contentType := writer.FormDataContentType()
+	writer.Close()
+
+	resp, err := http.Post(uri, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return respBody, nil
 }

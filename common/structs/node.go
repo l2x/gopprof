@@ -63,7 +63,7 @@ type NodeConf struct {
 	Profile       []string
 
 	EnableStats bool
-	StatsCorn   string
+	StatsCron   string
 }
 
 type ExInfo struct {

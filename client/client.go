@@ -9,6 +9,8 @@ import (
 	"reflect"
 	"time"
 
+	"gopkg.in/robfig/cron.v2"
+
 	"github.com/l2x/gopprof/common/event"
 	"github.com/l2x/gopprof/common/structs"
 	"github.com/l2x/gopprof/common/util"
@@ -24,6 +26,7 @@ type Client struct {
 	node       *structs.Node
 	exInfo     structs.ExInfo
 	serverAddr string
+	job        *job
 }
 
 func NewClient(serverAddr, nodeID string) *Client {
@@ -46,6 +49,12 @@ func (c *Client) Run() error {
 	if err := c.register(); err != nil {
 		return err
 	}
+	c.job = &job{
+		c:  c,
+		cb: cron.New(),
+	}
+	c.job.cb.Start()
+
 	go c.run()
 	return nil
 }
@@ -61,11 +70,9 @@ func (c *Client) register() error {
 	if evtResp == nil || evtResp.Type != event.EventTypeExInfo {
 		return fmt.Errorf("[gopprof/register] incorrect response event: %#v", evtResp)
 	}
-	exInfo, ok := evtResp.Data.(structs.ExInfo)
-	if !ok {
-		return fmt.Errorf("[gopprof/register] response event data invalid: %#v", evtResp)
+	if _, err = eventExInfo(c, evtResp); err != nil {
+		return err
 	}
-	c.exInfo = exInfo
 	return nil
 }
 

@@ -25,6 +25,7 @@ func pprofToPDF(data *structs.ProfileData) ([]byte, error) {
 	os.MkdirAll(tmpDir, 0755)
 	defer os.RemoveAll(tmpDir)
 
+	// get binary file. if failure continue
 	fname, err := db.TableBin(data.NodeID).Get(data.BinMD5)
 	if err == nil {
 		tmpBinFile = filepath.Join(tmpDir, filepath.Base(fname))
@@ -49,8 +50,7 @@ func pprofToPDF(data *structs.ProfileData) ([]byte, error) {
 		return nil, err
 	}
 
-	b, err = ioutil.ReadFile(tmpPDFFile)
-	if err != nil {
+	if b, err = ioutil.ReadFile(tmpPDFFile); err != nil {
 		logger.Error(err)
 		return nil, err
 	}

@@ -6,21 +6,25 @@ import (
 	"time"
 )
 
+type EventType int
+
 const (
-	EventTypeNone          = 0
-	EventTypeRegister      = 1
-	EventTypeStats         = 2
-	EventTypeUploadProfile = 3
-	EventTypeUploadBin     = 4
-	EventTypeConf          = 5
-	EventTypeExInfo        = 6
+	EventTypeNone          EventType = 0
+	EventTypeRegister      EventType = 1
+	EventTypeStats         EventType = 2
+	EventTypeUploadProfile EventType = 3
+	EventTypeUploadBin     EventType = 4
+	EventTypeConf          EventType = 5
+	EventTypeExInfo        EventType = 6
+)
+
+var (
+	seq = time.Now().UnixNano()
 )
 
 func init() {
 	gob.Register(&Event{})
 }
-
-type EventType int
 
 type Event struct {
 	NodeID string
@@ -30,10 +34,6 @@ type Event struct {
 	Ack int64
 	Seq int64
 }
-
-var (
-	seq = time.Now().UnixNano()
-)
 
 func NewEvent(nodeID string, typ EventType, data interface{}) *Event {
 	return &Event{

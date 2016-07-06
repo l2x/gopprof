@@ -194,7 +194,7 @@ func uploadHandler(c *gin.Context) {
 	case event.EventTypeUploadProfile:
 		err = uploadProfile(c, file, handler.Filename)
 	case event.EventTypeUploadBin:
-		err = uploadBin(c, file)
+		err = uploadBin(c, file, handler.Filename)
 	default:
 		err = fmt.Errorf("Unknown event: %v", eventType)
 	}
@@ -225,10 +225,10 @@ func uploadProfile(c *gin.Context, file multipart.File, filename string) error {
 	return nil
 }
 
-func uploadBin(c *gin.Context, file multipart.File) error {
+func uploadBin(c *gin.Context, file multipart.File, filename string) error {
 	nodeID := c.Request.FormValue("nodeid")
 	binMD5 := c.Request.FormValue("bin_md5")
-	fname := filepath.Join(nodeID, "bin", time.Now().Format("2006/01/02"), binMD5)
+	fname := filepath.Join("bin", time.Now().Format("2006/01/02"), binMD5, filename)
 	if err := store.Copy(fname, file); err != nil {
 		logger.Error(err)
 		return err
@@ -272,15 +272,15 @@ func downloadHandler(c *gin.Context) {
 }
 
 func downloadBin(data *structs.ProfileData) ([]byte, string, error) {
-	fname, err := db.TableBin(data.NodeID).Get(data.BinMD5)
+	file, err := db.TableBin(data.NodeID).Get(data.BinMD5)
 	if err != nil {
 		return nil, "", err
 	}
-	b, err := store.Get(fname)
+	b, err := store.Get(file)
 	if err != nil {
 		return nil, "", err
 	}
-	return b, filepath.Base(fname), nil
+	return b, filepath.Base(file), nil
 }
 
 func downloadPprof(data *structs.ProfileData) ([]byte, string, error) {
@@ -292,13 +292,13 @@ func downloadPprof(data *structs.ProfileData) ([]byte, string, error) {
 }
 
 func downloadPDF(data *structs.ProfileData) ([]byte, string, error) {
-	fname := data.File + ".pdf"
-	if b, err := store.Get(fname); err == nil {
-		return b, "", nil
+	pdfFile := data.File + ".pdf"
+	if b, err := store.Get(pdfFile); err == nil {
+		return b, filepath.Base(pdfFile), nil
 	}
 	b, err := pprofToPDF(data)
 	if err != nil {
 		return nil, "", err
 	}
-	return b, filepath.Base(fname), nil
+	return b, filepath.Base(pdfFile), nil
 }
