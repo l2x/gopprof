@@ -38,6 +38,7 @@ func ListenHTTP(port string) {
 	r.POST("/pprof", pprofHandler)
 	r.POST("/upload", uploadHandler)
 	r.GET("/download", downloadHandler)
+	r.GET("/setting", settingHandler)
 
 	if err := r.Run(port); err != nil {
 		logger.Criticalf("Cannot start http server: %s", err)
@@ -76,6 +77,19 @@ func nodesHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, nodes)
+}
+
+func settingHandler(c *gin.Context) {
+	var (
+		nodeConf *structs.NodeConf
+	)
+	nodeID := c.Query("nodeid")
+	if nodeID == "_default" {
+		nodeConf, _ = db.TableConfig(nodeID).GetDefault()
+	} else {
+		nodeConf, _ = db.TableConfig(nodeID).Get()
+	}
+	c.JSON(http.StatusOK, nodeConf)
 }
 
 func statsHandler(c *gin.Context) {
@@ -254,8 +268,6 @@ func downloadHandler(c *gin.Context) {
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
-
-	fmt.Println(typ)
 
 	switch typ {
 	case "bin":
