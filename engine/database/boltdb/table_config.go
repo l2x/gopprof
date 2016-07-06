@@ -67,7 +67,13 @@ func (t *TableConfig) SaveDefault(data *structs.NodeConf) error {
 }
 
 func (t *TableConfig) GetDefault() (*structs.NodeConf, error) {
-	nodeConf := &structs.NodeConf{}
+	nodeConf := &structs.NodeConf{
+		EnableStats:   true,
+		StatsCron:     "*/1 * * * *",
+		EnableProfile: true,
+		ProfileCron:   "*/1 * * * *",
+		Profile:       []string{"heap", "cpu", "trace", "block"},
+	}
 	err := t.db.View(func(tx *bolt.Tx) error {
 		v := tx.Bucket(t.Table()).Get([]byte(t.nodeID))
 		if v == nil {

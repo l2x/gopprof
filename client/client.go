@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/rpc"
+	"os"
 	"reflect"
 	"time"
 
@@ -35,6 +36,7 @@ func NewClient(serverAddr, nodeID string) *Client {
 		node.BinMD5 = fmt.Sprintf("%x", md5.Sum(b))
 	}
 	node.InternalIP, node.ExternalIP, _ = util.GetNetInterfaceIP()
+	node.Hostname, _ = os.Hostname()
 	c := &Client{
 		node:       node,
 		serverAddr: serverAddr,
@@ -125,9 +127,9 @@ func (c *Client) connect() error {
 }
 
 func (c *Client) reconnect(e error) error {
+	fmt.Println(reflect.TypeOf(e))
 	if e != io.EOF && e != io.ErrUnexpectedEOF && e != rpc.ErrShutdown {
 		return nil
 	}
-	fmt.Println(reflect.TypeOf(e))
 	return c.connect()
 }

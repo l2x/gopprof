@@ -35,7 +35,7 @@ func (t *TableProfile) Save(data *structs.ProfileData) error {
 		if err != nil {
 			return err
 		}
-		k := fmt.Sprintf("%s_%d", data.NodeID, data.Created)
+		k := fmt.Sprintf("%d", data.Created)
 		v, err := json.Marshal(data)
 		if err != nil {
 			return err
@@ -51,8 +51,8 @@ func (t *TableProfile) GetRangeTime(start, end int64) ([]*structs.ProfileData, e
 		if b == nil {
 			return nil
 		}
-		min := []byte(fmt.Sprintf("%d", t.nodeID, start))
-		max := []byte(fmt.Sprintf("%d", t.nodeID, end))
+		min := []byte(fmt.Sprintf("%d", start))
+		max := []byte(fmt.Sprintf("%d", end))
 		c := b.Cursor()
 		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
 			var d *structs.ProfileData

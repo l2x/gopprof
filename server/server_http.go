@@ -241,6 +241,7 @@ func uploadBin(c *gin.Context, file multipart.File, filename string) error {
 
 func downloadHandler(c *gin.Context) {
 	var (
+		typ        = c.Query("type")
 		nodeID     = c.Query("nodeid")
 		created, _ = strconv.ParseInt(c.Query("created"), 10, 64)
 		b          []byte
@@ -254,7 +255,9 @@ func downloadHandler(c *gin.Context) {
 		return
 	}
 
-	switch data.Type {
+	fmt.Println(typ)
+
+	switch typ {
 	case "bin":
 		b, fname, err = downloadBin(data)
 	case "pdf":

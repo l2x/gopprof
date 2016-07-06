@@ -26,3 +26,4 @@ log
 logs
 gopprof
 data
+*.pprof

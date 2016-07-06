@@ -21,17 +21,9 @@ var eventFunc = map[event.EventType]func(c *Client, evtReq *event.Event) (*event
 	event.EventTypeRegister:      eventRegister,
 	event.EventTypeConf:          eventConf,
 	event.EventTypeUploadProfile: eventUploadProfile,
+	event.EventTypeUploadBin:     eventUploadBin,
 	event.EventTypeStats:         eventStats,
-}
-
-func eventExInfo(c *Client, evtReq *event.Event) (*event.Event, error) {
-	exInfo, ok := evtReq.Data.(structs.ExInfo)
-	if !ok {
-		return nil, fmt.Errorf("[gopprof/register] response event data invalid: %#v", evtReq)
-	}
-	exInfo.HTTPListen = fmt.Sprintf("http://%s:%s", strings.Split(c.serverAddr, ":")[0], strings.TrimLeft(exInfo.HTTPListen, ":"))
-	c.exInfo = exInfo
-	return nil, nil
+	event.EventTypeExInfo:        eventExInfo,
 }
 
 func eventProxy(c *Client, evtReq *event.Event) (*event.Event, error) {
@@ -107,6 +99,7 @@ func uploadProfile(c *Client, nodeConf structs.NodeConf) error {
 			log.Println(err)
 			continue
 		}
+		time.Sleep(1 * time.Second)
 	}
 	return nil
 }
@@ -127,5 +120,15 @@ func eventUploadBin(c *Client, evtReq *event.Event) (*event.Event, error) {
 		log.Println(err)
 		return nil, err
 	}
+	return nil, nil
+}
+
+func eventExInfo(c *Client, evtReq *event.Event) (*event.Event, error) {
+	exInfo, ok := evtReq.Data.(structs.ExInfo)
+	if !ok {
+		return nil, fmt.Errorf("[gopprof/register] response event data invalid: %#v", evtReq)
+	}
+	exInfo.HTTPListen = fmt.Sprintf("http://%s:%s", strings.Split(c.serverAddr, ":")[0], strings.TrimLeft(exInfo.HTTPListen, ":"))
+	c.exInfo = exInfo
 	return nil, nil
 }

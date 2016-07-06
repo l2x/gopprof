@@ -15,7 +15,8 @@ func (j *job) reload() {
 	nodeConf := j.c.node.NodeConf
 	if nodeConf.EnableStats {
 		j.statsEntryID, _ = j.cb.AddFunc(nodeConf.StatsCron, func() {
-			eventStats(j.c, nil)
+			evt, _ := eventStats(j.c, nil)
+			j.c.node.AddEvent(evt)
 		})
 	}
 	if nodeConf.EnableProfile && len(nodeConf.Profile) > 0 {
