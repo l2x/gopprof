@@ -22,8 +22,8 @@ _testmain.go
 *.exe
 *.test
 *.prof
-database
 log
 logs
-files
 gopprof
+data
+*.pprof
