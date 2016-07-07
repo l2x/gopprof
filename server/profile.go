@@ -1,27 +1,34 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/l2x/gopprof/common/structs"
 )
 
-// generate profiling pdf file.
+// generate profiling graph to pdf file.
 // go tool pprof -pdf /path/to/bin /path/to/pprof/file > /path/to/pdf/save
-// TODO
 func pprofToPDF(data *structs.ProfileData) ([]byte, error) {
 	var (
-		tmpDir       = fmt.Sprintf("tmp/%d", time.Now().UnixNano())
-		goBin        = "go"
-		tmpBinFile   = ""
-		tmpPprofFile = ""
-		tmpPDFFile   = ""
+		err                                                 error
+		tmpDir                                              = fmt.Sprintf("tmp/%d", time.Now().UnixNano())
+		goRoot, goBin, tmpBinFile, tmpPprofFile, tmpPDFFile string
 	)
+	goRoot, err = db.TableConfig(data.NodeID).GetGoroot(strings.TrimLeft(data.GoVersion, "go"))
+	if err != nil {
+		err = errors.New("go root not setting")
+		logger.Error(err)
+		return nil, err
+	}
+	goBin = filepath.Join(goRoot, "bin/go")
+
 	os.MkdirAll(tmpDir, 0755)
 	defer os.RemoveAll(tmpDir)
 

@@ -3,6 +3,7 @@ package boltdb
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 
 	"github.com/boltdb/bolt"
 	"github.com/l2x/gopprof/common/structs"
@@ -79,4 +80,18 @@ func (t *TableConfig) GetDefault() (*structs.NodeConf, error) {
 		return nil
 	})
 	return nodeConf, err
+}
+
+func (t *TableConfig) GetGoroot(version string) (string, error) {
+	var goroot string
+	err := t.db.View(func(tx *bolt.Tx) error {
+		k := fmt.Sprintf("goroot_%s", version)
+		v := tx.Bucket(t.Table()).Get([]byte(k))
+		if v == nil {
+			return sql.ErrNoRows
+		}
+		goroot = string(v)
+		return nil
+	})
+	return goroot, err
 }
