@@ -32,7 +32,8 @@ func pprofToPDF(data *structs.ProfileData) ([]byte, error) {
 	os.MkdirAll(tmpDir, 0755)
 	defer os.RemoveAll(tmpDir)
 
-	// get binary file. if failure continue
+	// get binary file
+	// if the failure continues
 	fname, err := db.TableBin(data.NodeID).Get(data.BinMD5)
 	if err == nil {
 		tmpBinFile = filepath.Join(tmpDir, filepath.Base(fname))
@@ -47,6 +48,13 @@ func pprofToPDF(data *structs.ProfileData) ([]byte, error) {
 		logger.Error(err)
 		return nil, err
 	}
+
+	// set go root
+	currentGoRoot := os.Getenv("GOROOT")
+	os.Setenv("GOROOT", goRoot)
+	defer func() {
+		os.Setenv("GOROOT", currentGoRoot)
+	}()
 
 	tmpPDFFile = tmpPprofFile + ".pdf"
 	cmd := fmt.Sprintf("%s tool pprof -pdf %s %s > %s", goBin, tmpBinFile, tmpPprofFile, tmpPDFFile)

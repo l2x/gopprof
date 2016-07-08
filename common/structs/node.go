@@ -55,6 +55,7 @@ type NodeBase struct {
 	BinMD5     string
 	LastSync   time.Time
 	Created    time.Time
+	Status     uint8
 }
 
 type NodeConf struct {
