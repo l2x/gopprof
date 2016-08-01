@@ -67,6 +67,10 @@ type NodeConf struct {
 	StatsCron   string
 }
 
+func NewNodeConf() *NodeConf {
+	return &NodeConf{}
+}
+
 type ExInfo struct {
 	HTTPListen string
 }

@@ -86,11 +86,7 @@ func settingHandler(c *gin.Context) {
 		nodeConf *structs.NodeConf
 	)
 	nodeID := c.Query("nodeid")
-	if nodeID == "_default" {
-		nodeConf, _ = db.TableConfig(nodeID).GetDefault()
-	} else {
-		nodeConf, _ = db.TableConfig(nodeID).Get()
-	}
+	nodeConf, _ = db.TableConfig(nodeID).Get()
 	c.JSON(http.StatusOK, nodeConf)
 }
 
@@ -125,19 +121,6 @@ func settingSaveHandler(c *gin.Context) {
 	}
 	if !req.NodeConf.EnableStats {
 		req.NodeConf.StatsCron = ""
-	}
-	var dfa bool
-	if len(req.Nodes) == 1 && req.Nodes[0] == "_default" {
-		dfa = true
-	}
-
-	if dfa {
-		if err := db.TableConfig(req.Nodes[0]).SaveDefault(&req.NodeConf); err != nil {
-			c.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-		c.Status(http.StatusOK)
-		return
 	}
 
 	for _, nodeID := range req.Nodes {

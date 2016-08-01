@@ -61,7 +61,7 @@ func eventRegister(node *structs.Node, evtReq *event.Event) (*event.Event, error
 	// get node profile and stats configs
 	nodeConf, err := db.TableConfig(nodeBase.NodeID).Get()
 	if err != nil {
-		nodeConf, _ = db.TableConfig(nodeBase.NodeID).GetDefault()
+		nodeConf = structs.NewNodeConf()
 	}
 
 	node = nodesMap.Add(nodeBase.NodeID)

@@ -11,18 +11,16 @@ import (
 )
 
 type TableConfig struct {
-	db         *bolt.DB
-	nodeID     string
-	table      []byte
-	defaultKey []byte
+	db     *bolt.DB
+	nodeID string
+	table  []byte
 }
 
 func NewTableConfig(db *bolt.DB, nodeID string) database.TableConfig {
 	return &TableConfig{
-		db:         db,
-		nodeID:     nodeID,
-		table:      []byte("config"),
-		defaultKey: []byte("_default"),
+		db:     db,
+		nodeID: nodeID,
+		table:  []byte("config"),
 	}
 }
 
@@ -56,32 +54,6 @@ func (t *TableConfig) Get() (*structs.NodeConf, error) {
 	return nodeConf, err
 }
 
-func (t *TableConfig) SaveDefault(data *structs.NodeConf) error {
-	return t.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket(t.Table())
-		v, err := json.Marshal(data)
-		if err != nil {
-			return err
-		}
-		return b.Put(t.defaultKey, v)
-	})
-}
-
-func (t *TableConfig) GetDefault() (*structs.NodeConf, error) {
-	nodeConf := &structs.NodeConf{}
-	err := t.db.View(func(tx *bolt.Tx) error {
-		v := tx.Bucket(t.Table()).Get([]byte(t.nodeID))
-		if v == nil {
-			return nil
-		}
-		if err := json.Unmarshal(v, &nodeConf); err != nil {
-			return err
-		}
-		return nil
-	})
-	return nodeConf, err
-}
-
 func (t *TableConfig) GetGoroot(version string) (string, error) {
 	var goroot string
 	err := t.db.View(func(tx *bolt.Tx) error {
@@ -94,4 +66,11 @@ func (t *TableConfig) GetGoroot(version string) (string, error) {
 		return nil
 	})
 	return goroot, err
+}
+
+func (t *TableConfig) SaveGoroot(version, path string) error {
+	return t.db.Update(func(tx *bolt.Tx) error {
+		k := fmt.Sprintf("goroot_%s", version)
+		return tx.Bucket(t.Table()).Put([]byte(k), []byte(path))
+	})
 }
