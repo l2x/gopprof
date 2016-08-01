@@ -320,6 +320,10 @@ func downloadHandler(c *gin.Context) {
 		c.String(http.StatusBadRequest, "download type unsupport")
 		return
 	}
+	if err != nil {
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
 
 	c.Writer.Header().Set("Content-Disposition", "attachment; filename="+fname)
 	c.Writer.Header().Set("Content-Type", c.Request.Header.Get("Content-Type"))
