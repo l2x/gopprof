@@ -61,12 +61,7 @@ func eventRegister(node *structs.Node, evtReq *event.Event) (*event.Event, error
 	// get node profile and stats configs
 	nodeConf, err := db.TableConfig(nodeBase.NodeID).Get()
 	if err != nil {
-		nodeConf, _ = db.TableConfig(nodeBase.NodeID).GetDefault()
-	}
-
-	// save node
-	if err = db.TableNode(nodeBase.NodeID).Save(&nodeBase); err != nil {
-		return nil, err
+		nodeConf = structs.NewNodeConf()
 	}
 
 	node = nodesMap.Add(nodeBase.NodeID)
@@ -74,6 +69,12 @@ func eventRegister(node *structs.Node, evtReq *event.Event) (*event.Event, error
 	node.NodeConf = *nodeConf
 	node.LastSync = time.Now()
 	node.Created = time.Now()
+	node.Status = 1
+
+	// save node
+	if err = db.TableNode(nodeBase.NodeID).Save(&node.NodeBase); err != nil {
+		return nil, err
+	}
 
 	if !checkBinFileExist(node.NodeID, node.BinMD5) {
 		node.AddEvent(event.NewEvent(node.NodeID, event.EventTypeUploadBin, nil))

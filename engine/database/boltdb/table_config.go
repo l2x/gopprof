@@ -1,6 +1,7 @@
 package boltdb
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -11,18 +12,16 @@ import (
 )
 
 type TableConfig struct {
-	db         *bolt.DB
-	nodeID     string
-	table      []byte
-	defaultKey []byte
+	db     *bolt.DB
+	nodeID string
+	table  []byte
 }
 
 func NewTableConfig(db *bolt.DB, nodeID string) database.TableConfig {
 	return &TableConfig{
-		db:         db,
-		nodeID:     nodeID,
-		table:      []byte("config"),
-		defaultKey: []byte("_default"),
+		db:     db,
+		nodeID: nodeID,
+		table:  []byte("config"),
 	}
 }
 
@@ -56,42 +55,46 @@ func (t *TableConfig) Get() (*structs.NodeConf, error) {
 	return nodeConf, err
 }
 
-func (t *TableConfig) SaveDefault(data *structs.NodeConf) error {
-	return t.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket(t.Table())
-		v, err := json.Marshal(data)
-		if err != nil {
-			return err
-		}
-		return b.Put(t.defaultKey, v)
-	})
-}
-
-func (t *TableConfig) GetDefault() (*structs.NodeConf, error) {
-	nodeConf := &structs.NodeConf{}
+func (t *TableConfig) Goroots() ([]*structs.Goroot, error) {
+	goroots := []*structs.Goroot{}
 	err := t.db.View(func(tx *bolt.Tx) error {
-		v := tx.Bucket(t.Table()).Get([]byte(t.nodeID))
-		if v == nil {
-			return nil
-		}
-		if err := json.Unmarshal(v, &nodeConf); err != nil {
-			return err
+		prefix := []byte("goroot_")
+		c := tx.Bucket(t.Table()).Cursor()
+		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
+			var goroot *structs.Goroot
+			if err := json.Unmarshal(v, &goroot); err != nil {
+				continue
+			}
+			goroots = append(goroots, goroot)
 		}
 		return nil
 	})
-	return nodeConf, err
+	return goroots, err
 }
 
-func (t *TableConfig) GetGoroot(version string) (string, error) {
-	var goroot string
+func (t *TableConfig) GetGoroot(version string) (*structs.Goroot, error) {
+	var goroot *structs.Goroot
 	err := t.db.View(func(tx *bolt.Tx) error {
 		k := fmt.Sprintf("goroot_%s", version)
 		v := tx.Bucket(t.Table()).Get([]byte(k))
 		if v == nil {
 			return sql.ErrNoRows
 		}
-		goroot = string(v)
+		if err := json.Unmarshal(v, &goroot); err != nil {
+			return err
+		}
 		return nil
 	})
 	return goroot, err
+}
+
+func (t *TableConfig) SaveGoroot(goroot *structs.Goroot) error {
+	return t.db.Update(func(tx *bolt.Tx) error {
+		v, err := json.Marshal(goroot)
+		if err != nil {
+			return err
+		}
+		k := fmt.Sprintf("goroot_%s", goroot.Version)
+		return tx.Bucket(t.Table()).Put([]byte(k), v)
+	})
 }
