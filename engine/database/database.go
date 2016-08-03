@@ -62,8 +62,9 @@ type TableConfig interface {
 	Table() []byte
 	Save(data *structs.NodeConf) error
 	Get() (*structs.NodeConf, error)
-	GetGoroot(version string) (string, error)
-	SaveGoroot(version, path string) error
+	Goroots() ([]*structs.Goroot, error)
+	GetGoroot(version string) (*structs.Goroot, error)
+	SaveGoroot(goroot *structs.Goroot) error
 }
 
 // TableNode save all node info

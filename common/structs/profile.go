@@ -15,3 +15,8 @@ type ProfileData struct {
 	BinMD5    string
 	GoVersion string
 }
+
+type Goroot struct {
+	Version string `json:"version"`
+	Path    string `json:"path"`
+}

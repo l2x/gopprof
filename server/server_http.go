@@ -41,6 +41,8 @@ func ListenHTTP(port string) {
 	r.GET("/download", downloadHandler)
 	r.GET("/setting", settingHandler)
 	r.POST("/setting/save", settingSaveHandler)
+	r.GET("/setting/goroot", settingGorootHandler)
+	r.POST("/setting/goroot/save", settingGorootSaveHandler)
 
 	if err := r.Run(port); err != nil {
 		logger.Criticalf("Cannot start http server: %s", err)
@@ -128,6 +130,35 @@ func settingSaveHandler(c *gin.Context) {
 			logger.Error(err)
 			continue
 		}
+	}
+	c.Status(http.StatusOK)
+}
+
+func settingGorootHandler(c *gin.Context) {
+	goroots, err := db.TableConfig("").Goroots()
+	if err != nil {
+		logger.Error(err)
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, goroots)
+}
+
+func settingGorootSaveHandler(c *gin.Context) {
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		logger.Error(err)
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	var goroots []*structs.Goroot
+	if err = json.Unmarshal(body, &goroots); err != nil {
+		logger.Error(err)
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	for _, goroot := range goroots {
+		db.TableConfig("").SaveGoroot(goroot)
 	}
 	c.Status(http.StatusOK)
 }

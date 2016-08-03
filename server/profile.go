@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -21,15 +20,14 @@ func pprofToPDF(data *structs.ProfileData) ([]byte, error) {
 		tmpDir                                              = fmt.Sprintf("tmp/%d", time.Now().UnixNano())
 		goRoot, goBin, tmpBinFile, tmpPprofFile, tmpPDFFile string
 	)
-	// TODO
-	// auto check
-	// get latest verison if not found
-	goRoot, err = db.TableConfig(data.NodeID).GetGoroot(strings.TrimLeft(data.GoVersion, "go"))
+
+	goroot, err := db.TableConfig(data.NodeID).GetGoroot(strings.TrimLeft(data.GoVersion, "go"))
 	if err != nil {
-		err = errors.New("go root not set")
+		err = fmt.Errorf("%s goroot not set, pleace go to setting->goroot set goroot", data.GoVersion)
 		logger.Error(err)
 		return nil, err
 	}
+	goRoot = goroot.Path
 	goBin = filepath.Join(goRoot, "bin/go")
 
 	os.MkdirAll(tmpDir, 0755)
