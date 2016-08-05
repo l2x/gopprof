@@ -119,6 +119,20 @@ func eventUploadBin(nodeID, binMD5, file string) error {
 	return nil
 }
 
+func eventReloadConf(nodeID string) error {
+	node, ok := nodesMap.Get(nodeID)
+	if !ok {
+		return nil
+	}
+	nodeConf, err := db.TableConfig(nodeID).Get()
+	if err != nil {
+		return nil
+	}
+	node.NodeConf = *nodeConf
+	node.AddEvent(event.NewEvent(node.NodeID, event.EventTypeConf, node.NodeConf))
+	return nil
+}
+
 // Check binary file is already exists.
 // It will be used in profiling data analysis.
 func checkBinFileExist(nodeID string, binMD5 string) bool {
