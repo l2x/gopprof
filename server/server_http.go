@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"time"
 
+	"gopkg.in/robfig/cron.v2"
+
 	"github.com/gin-gonic/gin"
 	"github.com/l2x/gopprof/common/event"
 	"github.com/l2x/gopprof/common/structs"
@@ -126,12 +128,24 @@ func settingSaveHandler(c *gin.Context) {
 	if !req.NodeConf.EnableStats {
 		req.NodeConf.StatsCron = ""
 	}
-
+	if req.NodeConf.EnableProfile {
+		if _, err = cron.Parse(req.NodeConf.ProfileCron); err != nil {
+			c.String(http.StatusBadRequest, err.Error())
+			return
+		}
+	}
+	if req.NodeConf.EnableStats {
+		if _, err = cron.Parse(req.NodeConf.StatsCron); err != nil {
+			c.String(http.StatusBadRequest, err.Error())
+			return
+		}
+	}
 	for _, nodeID := range req.Nodes {
 		if err = db.TableConfig(nodeID).Save(&req.NodeConf); err != nil {
 			logger.Error(err)
 			continue
 		}
+		eventReloadConf(nodeID)
 	}
 	c.Status(http.StatusOK)
 }
