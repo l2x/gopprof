@@ -2,7 +2,9 @@ package server
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,12 +22,14 @@ func pprofToPDF(data *structs.ProfileData) ([]byte, error) {
 		tmpDir                                              = fmt.Sprintf("tmp/%d", time.Now().UnixNano())
 		goRoot, goBin, tmpBinFile, tmpPprofFile, tmpPDFFile string
 	)
-
-	goroot, err := db.TableConfig(data.NodeID).GetGoroot(strings.TrimLeft(data.GoVersion, "go"))
+	goVersion := strings.TrimLeft(data.GoVersion, "go")
+	goroot, err := db.TableConfig("").GetGoroot(goVersion)
 	if err != nil {
-		err = fmt.Errorf("%s goroot not set, pleace go to setting->goroot set goroot", data.GoVersion)
-		logger.Error(err)
-		return nil, err
+		if goroot, err = tryDownloadGo(goVersion); err != nil {
+			err = fmt.Errorf("%s\ncan not set `GOROOT`", err.Error())
+			logger.Error(err)
+			return nil, err
+		}
 	}
 	goRoot = goroot.Path
 	goBin = filepath.Join(goRoot, "bin/go")
@@ -77,4 +81,51 @@ func pprofToPDF(data *structs.ProfileData) ([]byte, error) {
 		return nil, err
 	}
 	return b, nil
+}
+
+func tryDownloadGo(goVersion string) (*structs.Goroot, error) {
+	tmpFile := fmt.Sprintf("tmp/%v", time.Now().UnixNano())
+	out, err := os.Create(tmpFile)
+	if err != nil {
+		return nil, err
+	}
+	defer out.Close()
+	defer os.Remove(tmpFile)
+
+	uri := fmt.Sprintf("https://storage.googleapis.com/golang/go%s.linux-amd64.tar.gz", goVersion)
+	logger.Debug("download go file:", uri)
+	resp, err := http.Get(uri)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	target := fmt.Sprintf("tmp/%v", time.Now().UnixNano())
+	os.MkdirAll(target, 0755)
+	if err = uncompress(tmpFile, target); err != nil {
+		return nil, err
+	}
+	defer os.RemoveAll(target)
+
+	newpath := fmt.Sprintf("%s/go%s", conf.GoFilePath, goVersion)
+	os.RemoveAll(newpath)
+	if err = os.Rename(fmt.Sprintf("%s/go", target), newpath); err != nil {
+		return nil, err
+	}
+	goroot := &structs.Goroot{Version: goVersion, Path: newpath}
+	db.TableConfig("").SaveGoroot(goroot)
+	return db.TableConfig("").GetGoroot(goVersion)
+}
+
+func uncompress(source, target string) error {
+	cmd := fmt.Sprintf("tar -C %s -xzf %s", target, source)
+	b, err := exec.Command("sh", "-c", cmd).Output()
+	if err != nil {
+		err = fmt.Errorf("%s,%s,%s", cmd, err.Error(), string(b))
+		return err
+	}
+	return nil
 }
