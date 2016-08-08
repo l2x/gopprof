@@ -29,8 +29,6 @@ func ListenHTTP(port string) {
 	}
 	r := gin.Default()
 	r.Use(func(c *gin.Context) {
-		// TODO for test
-		time.Sleep(1 * time.Second)
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type,Token")
 		c.Next()
@@ -172,6 +170,11 @@ func settingGorootSaveHandler(c *gin.Context) {
 		logger.Error(err)
 		c.String(http.StatusBadRequest, err.Error())
 		return
+	}
+
+	saved, _ := db.TableConfig("").Goroots()
+	for _, goroot := range saved {
+		db.TableConfig("").DelGoroot(goroot)
 	}
 	for _, goroot := range goroots {
 		if goroot.Version == "" || goroot.Path == "" {

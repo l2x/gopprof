@@ -98,3 +98,10 @@ func (t *TableConfig) SaveGoroot(goroot *structs.Goroot) error {
 		return tx.Bucket(t.Table()).Put([]byte(k), v)
 	})
 }
+
+func (t *TableConfig) DelGoroot(goroot *structs.Goroot) error {
+	return t.db.Update(func(tx *bolt.Tx) error {
+		k := fmt.Sprintf("goroot_%s", goroot.Version)
+		return tx.Bucket(t.Table()).Delete([]byte(k))
+	})
+}

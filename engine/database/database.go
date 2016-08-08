@@ -65,6 +65,7 @@ type TableConfig interface {
 	Goroots() ([]*structs.Goroot, error)
 	GetGoroot(version string) (*structs.Goroot, error)
 	SaveGoroot(goroot *structs.Goroot) error
+	DelGoroot(goroot *structs.Goroot) error
 }
 
 // TableNode save all node info
