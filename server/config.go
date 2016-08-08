@@ -3,6 +3,7 @@ package server
 import (
 	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -24,6 +25,7 @@ type Config struct {
 	StoreSource   string
 	DBDriver      string
 	DBSource      string
+	GoFilePath    string
 }
 
 func initConfig(args []string) error {
@@ -76,6 +78,12 @@ func initConfig(args []string) error {
 	conf.DBSource = cnf.DefaultString("db_source", "./data/db/bolt.db")
 	conf.StoreDriver = cnf.DefaultString("store_driver", "localfile")
 	conf.StoreSource = cnf.DefaultString("store_source", "./data/files")
+
+	conf.GoFilePath = cnf.DefaultString("go_file_path", "./data/go")
+
+	os.MkdirAll(conf.GoFilePath, 0755)
+	os.MkdirAll(conf.LogPath, 0755)
+	os.MkdirAll("./tmp", 0755)
 
 	// TODO
 	conf.Debug = true

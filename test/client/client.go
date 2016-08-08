@@ -21,7 +21,7 @@ func main() {
 	flag.Parse()
 
 	if err := client.NewClient(Host, NodeID).Run(); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	go test()
 
