@@ -83,6 +83,7 @@ func pprofToPDF(data *structs.ProfileData) ([]byte, error) {
 	return b, nil
 }
 
+// try to download go file and save GOROOT
 func tryDownloadGo(goVersion string) (*structs.Goroot, error) {
 	tmpFile := fmt.Sprintf("tmp/%v", time.Now().UnixNano())
 	out, err := os.Create(tmpFile)
