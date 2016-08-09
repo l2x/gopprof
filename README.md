@@ -15,6 +15,6 @@ Profiling Go in the dashboard.
 
 ### Q: What is node/nodeID?
 
-### Q: [Why can not download PDF?](#download-pdf)
+### Q: Why can not download PDF?
 
 ### Q: Why do you need to set the GOROOT?
