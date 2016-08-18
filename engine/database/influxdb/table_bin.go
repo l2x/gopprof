@@ -47,10 +47,11 @@ func (t *TableBin) Save(binMD5, file string) error {
 }
 
 func (t *TableBin) Get(binMD5 string) (string, error) {
-	q := fmt.Sprintf("SELECT * FROM %s WHERE nodeID='%s' and md5='%s' LIMIT 1", t.table, t.nodeID, binMD5)
-	res, err := t.b.queryDB(q)
+	q := fmt.Sprintf("SELECT file FROM %s WHERE nodeID='%s' and md5='%s' LIMIT 1", t.table, t.nodeID, binMD5)
+	row, err := t.b.queryRow(q)
 	if err != nil {
 		return "", err
 	}
-
+	var file string
+	return file, scan(row, &file)
 }

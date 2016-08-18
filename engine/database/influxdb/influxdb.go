@@ -1,6 +1,8 @@
 package influxdb
 
 import (
+	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -98,25 +100,59 @@ func (b *InfluxDB) TableBin(nodeID string) database.TableBin {
 }
 
 func (b *InfluxDB) init() error {
-	_, err := b.queryDB(fmt.Sprintf("CREATE DATABASE %s", b.dbname))
+	_, err := b.query(fmt.Sprintf("CREATE DATABASE %s", b.dbname))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (b *InfluxDB) queryDB(cmd string) (res []client.Result, err error) {
+func (b *InfluxDB) query(cmd string) ([][]interface{}, error) {
 	q := client.Query{
 		Command:  cmd,
 		Database: b.dbname,
 	}
-	if response, err := b.db.Query(q); err == nil {
-		if response.Error() != nil {
-			return res, response.Error()
-		}
-		res = response.Results
-	} else {
-		return res, err
+	response, err := b.db.Query(q)
+	if err != nil {
+		return nil, err
 	}
+	if response.Error() != nil {
+		return nil, response.Error()
+	}
+	if len(response.Results) == 0 || len(response.Results[0].Series) == 0 || len(response.Results[0].Series[0].Values) == 0 {
+		return nil, sql.ErrNoRows
+	}
+	res := response.Results[0].Series[0].Values
 	return res, nil
+}
+
+func (b *InfluxDB) queryRow(cmd string) ([]interface{}, error) {
+	rows, err := b.query(cmd)
+	if err != nil {
+		return nil, err
+	}
+	return rows[0], nil
+}
+
+func scan(row []interface{}, dest ...interface{}) error {
+	if len(row)-1 < len(dest) {
+		return fmt.Errorf("expected %d destination arguments in Scan, not %d", len(row), len(dest))
+	}
+
+	var r json.Number
+	for i := 0; i < len(dest); i++ {
+		switch d := dest[i].(type) {
+		case *string:
+			*d = row[i+1].(string)
+		case *int64:
+			r, _ = row[i+1].(json.Number)
+			*d, _ = r.Int64()
+		case *float64:
+			r, _ = row[i+1].(json.Number)
+			*d, _ = r.Float64()
+		default:
+			return fmt.Errorf("unsupported type: %v", d)
+		}
+	}
+	return nil
 }
