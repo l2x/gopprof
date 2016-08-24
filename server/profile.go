@@ -14,6 +14,10 @@ import (
 	"github.com/l2x/gopprof/common/structs"
 )
 
+var (
+	errGetPDFLink = "https://github.com/l2x/gopprof#q-why-can-not-download-pdf"
+)
+
 // generate profiling graph to pdf file.
 // go tool pprof -pdf /path/to/bin /path/to/pprof/file > /path/to/pdf/save
 func pprofToPDF(data *structs.ProfileData) ([]byte, error) {
@@ -26,7 +30,7 @@ func pprofToPDF(data *structs.ProfileData) ([]byte, error) {
 	goroot, err := db.TableConfig("").GetGoroot(goVersion)
 	if err != nil {
 		if goroot, err = tryDownloadGo(goVersion); err != nil {
-			err = fmt.Errorf("%s\ncan not set `GOROOT`", err.Error())
+			err = fmt.Errorf("%s\nmore information: %s", err.Error(), errGetPDFLink)
 			logger.Error(err)
 			return nil, err
 		}
