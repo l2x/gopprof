@@ -4,7 +4,6 @@ import (
 	"flag"
 	"log"
 	"math/rand"
-	"sync"
 	"time"
 
 	"github.com/l2x/gopprof/client"
@@ -29,35 +28,30 @@ func main() {
 }
 
 func test() {
-	var wg sync.WaitGroup
-	for i := 1; i < 100000; i++ {
-		wg.Add(1)
-		go func(i int) {
-			runMem(i)
-			wg.Done()
-		}(i)
-		wg.Add(1)
-		go func(i int) {
-			runGoroutine(i)
-			wg.Done()
-		}(i)
-		wg.Wait()
+	for {
+		runMem()
+		runGoroutine()
 	}
 }
 
-func runMem(i int) {
+func runMem() {
+	rand.Seed(time.Now().UnixNano())
+	i := rand.Intn(1024 * 1024 * 10)
+
 	b := make([]byte, i)
 	b[i-1] = 'a'
-	rand.Seed(time.Now().UnixNano())
+
 	time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 }
 
-func runGoroutine(n int) {
+func runGoroutine() {
 	rand.Seed(time.Now().UnixNano())
-	for i := 0; i < rand.Intn(n); i++ {
+	n := rand.Intn(50)
+	for i := 0; i < n; i++ {
 		go func() {
 			time.Sleep(1 * time.Second)
 		}()
 	}
-	time.Sleep(time.Duration(rand.Intn(500)) * time.Millisecond)
+
+	time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 }
