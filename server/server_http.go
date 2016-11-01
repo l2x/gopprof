@@ -46,6 +46,8 @@ func ListenHTTP(port string) {
 	r.GET("/setting/goroot", settingGorootHandler)
 	r.POST("/setting/goroot/save", settingGorootSaveHandler)
 
+	r.Static("/public", "./public")
+
 	if err := r.Run(port); err != nil {
 		logger.Criticalf("Cannot start http server: %s", err)
 	}
